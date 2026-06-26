@@ -6,7 +6,7 @@
 
 사용자 요청에 따라 Codex/LazyCodex가 설치된 Codex agent를 별도 background process로 실행해 리서치를 맡겼다.
 
-- Command 형태: `codex -a never exec -C /Users/sangwan/code/ai-agent-workflow-research ... < research-prompt.md`
+- Command 형태: `codex -a never exec -C ~/code/ai-agent-workflow-research ... < research-prompt.md`
 - LazyCodex/OmO hook이 활성화된 상태에서 실행됨.
 - agent는 `research/agent-report.md`, `assets/evidence/source-index.md`, `assets/evidence/lazycodex-local.md`, `.omo/ultraresearch/...` 초안을 생성했다.
 - process는 사용자가 보낸 새 메시지 이후 controller가 종료해 exit code `-15`로 끝났다. 종료 전 주요 markdown evidence는 생성되어 있었다.

@@ -3,40 +3,40 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="description" content="Gajae-Code, Hermes Agent, LazyCodex/OmO, OpenAI Codex의 agent workflow/control layer 비교 리서치" />
-  <title>AI Agent Workflow Research</title>
+  <meta name="description" content="Coding agent architecture under-the-hood research: taxonomy, common components, implementation deep dives, papers, evidence, and open questions." />
+  <title>AI Coding Agent Under-the-Hood Research</title>
   <style>
     :root {
       color-scheme: dark;
-      --bg: #090b10;
-      --bg-2: #0f1320;
+      --bg: #070a12;
+      --bg-2: #0d1220;
       --panel: rgba(255,255,255,.065);
       --panel-strong: rgba(255,255,255,.105);
-      --ink: #f4f7fb;
-      --muted: #a9b3c7;
-      --faint: #78839a;
+      --ink: #f5f7fb;
+      --muted: #aeb8cc;
+      --faint: #7f8aa3;
       --line: rgba(255,255,255,.13);
-      --accent: #7dd3fc;
-      --accent-2: #a78bfa;
+      --accent: #67e8f9;
+      --accent-2: #c084fc;
       --good: #86efac;
-      --warn: #fcd34d;
+      --warn: #facc15;
       --bad: #fda4af;
-      --shadow: 0 24px 90px rgba(0,0,0,.45);
+      --shadow: 0 24px 80px rgba(0,0,0,.42);
       --radius: 22px;
       --max: 1180px;
     }
     html[data-theme="light"] {
       color-scheme: light;
-      --bg: #f7f8fb;
-      --bg-2: #eef2f7;
+      --bg: #f8fafc;
+      --bg-2: #edf2f7;
       --panel: rgba(255,255,255,.86);
-      --panel-strong: #ffffff;
+      --panel-strong: #fff;
       --ink: #111827;
-      --muted: #445064;
-      --faint: #6b7280;
-      --line: rgba(17,24,39,.12);
+      --muted: #475569;
+      --faint: #64748b;
+      --line: rgba(15,23,42,.12);
       --accent: #0369a1;
-      --accent-2: #6d28d9;
+      --accent-2: #7e22ce;
       --good: #15803d;
       --warn: #a16207;
       --bad: #be123c;
@@ -48,11 +48,11 @@
       margin: 0;
       font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "SF Pro Display", "Apple SD Gothic Neo", "Noto Sans KR", "Segoe UI", sans-serif;
       background:
-        radial-gradient(circle at top left, rgba(125,211,252,.22), transparent 34rem),
-        radial-gradient(circle at 85% 8%, rgba(167,139,250,.18), transparent 32rem),
+        radial-gradient(circle at 10% 0%, rgba(103,232,249,.18), transparent 34rem),
+        radial-gradient(circle at 90% 5%, rgba(192,132,252,.18), transparent 32rem),
         linear-gradient(180deg, var(--bg), var(--bg-2));
       color: var(--ink);
-      line-height: 1.6;
+      line-height: 1.62;
       min-height: 100vh;
     }
     a { color: var(--accent); text-decoration: none; }
@@ -60,96 +60,61 @@
     .shell { width: min(var(--max), calc(100% - 40px)); margin: 0 auto; }
     .skip { position: absolute; left: -999px; top: 12px; background: var(--ink); color: var(--bg); padding: 10px 14px; border-radius: 12px; z-index: 10; }
     .skip:focus { left: 16px; }
-    header.hero { padding: 52px 0 30px; position: relative; }
-    .nav {
-      display: flex; align-items: center; justify-content: space-between; gap: 18px;
-      padding: 14px 0 26px;
-    }
-    .brand { display: flex; align-items: center; gap: 12px; font-weight: 780; letter-spacing: -.02em; }
-    .brand-mark {
-      width: 38px; height: 38px; display: grid; place-items: center;
-      border-radius: 12px; background: linear-gradient(135deg, var(--accent), var(--accent-2));
-      color: #07111f; font-weight: 900; box-shadow: var(--shadow);
-    }
+    header.hero { padding: 50px 0 32px; }
+    .nav { display: flex; align-items: center; justify-content: space-between; gap: 18px; padding: 12px 0 28px; }
+    .brand { display: flex; align-items: center; gap: 12px; font-weight: 820; letter-spacing: -.02em; }
+    .brand-mark { width: 38px; height: 38px; display: grid; place-items: center; border-radius: 12px; background: linear-gradient(135deg, var(--accent), var(--accent-2)); color: #07111f; font-weight: 900; box-shadow: var(--shadow); }
     .navlinks { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
-    .navlinks a, .theme-toggle {
-      border: 1px solid var(--line); color: var(--muted); background: var(--panel);
-      padding: 8px 11px; border-radius: 999px; font-size: 13px; backdrop-filter: blur(16px);
-    }
+    .navlinks a, .theme-toggle { border: 1px solid var(--line); color: var(--muted); background: var(--panel); padding: 8px 11px; border-radius: 999px; font-size: 13px; backdrop-filter: blur(16px); }
     .theme-toggle { cursor: pointer; color: var(--ink); font: inherit; }
-    .kicker { color: var(--accent); font-size: 13px; font-weight: 750; text-transform: uppercase; letter-spacing: .14em; }
-    h1 { margin: 14px 0 12px; max-width: 920px; font-size: clamp(44px, 7vw, 86px); line-height: .94; letter-spacing: -.07em; }
-    .lead { margin: 0; max-width: 850px; color: var(--muted); font-size: clamp(18px, 2vw, 23px); letter-spacing: -.02em; }
+    .kicker { color: var(--accent); font-size: 13px; font-weight: 780; text-transform: uppercase; letter-spacing: .14em; }
+    h1 { margin: 14px 0 14px; max-width: 980px; font-size: clamp(42px, 7vw, 84px); line-height: .94; letter-spacing: -.07em; }
+    .lead { margin: 0; max-width: 920px; color: var(--muted); font-size: clamp(18px, 2vw, 23px); letter-spacing: -.02em; }
     .hero-actions { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 26px; }
-    .btn {
-      display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 11px 16px;
-      border-radius: 14px; border: 1px solid var(--line); background: var(--panel-strong); color: var(--ink);
-      box-shadow: 0 10px 30px rgba(0,0,0,.12); font-weight: 720;
-    }
+    .btn { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 11px 16px; border-radius: 14px; border: 1px solid var(--line); background: var(--panel-strong); color: var(--ink); box-shadow: 0 10px 30px rgba(0,0,0,.12); font-weight: 740; }
     .btn.primary { background: linear-gradient(135deg, var(--accent), var(--accent-2)); color: #07111f; border: 0; }
     .meta-row { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 24px; color: var(--faint); font-size: 13px; }
     .pill { border: 1px solid var(--line); background: var(--panel); border-radius: 999px; padding: 6px 10px; }
     main { padding-bottom: 70px; }
-    section { scroll-margin-top: 22px; margin-top: 28px; }
+    section { scroll-margin-top: 22px; margin-top: 30px; }
     .section-head { margin: 0 0 16px; display: grid; gap: 4px; }
-    .eyebrow { color: var(--accent); font-weight: 780; font-size: 12px; letter-spacing: .13em; text-transform: uppercase; }
+    .eyebrow { color: var(--accent); font-weight: 800; font-size: 12px; letter-spacing: .13em; text-transform: uppercase; }
     h2 { margin: 0; font-size: clamp(26px, 3vw, 40px); letter-spacing: -.045em; line-height: 1.08; }
     h3 { margin: 0 0 8px; font-size: 18px; letter-spacing: -.025em; }
     p { margin: 0 0 12px; }
     .grid { display: grid; gap: 16px; }
     .cards-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
     .cards-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-    .card {
-      position: relative; border: 1px solid var(--line); border-radius: var(--radius); padding: 20px;
-      background: linear-gradient(180deg, var(--panel-strong), var(--panel)); box-shadow: var(--shadow); overflow: hidden;
-    }
-    .card::before {
-      content: ""; position: absolute; inset: 0 0 auto 0; height: 3px;
-      background: linear-gradient(90deg, var(--accent), var(--accent-2)); opacity: .8;
-    }
-    .card .num { font-size: 34px; line-height: 1; font-weight: 850; letter-spacing: -.06em; margin-bottom: 10px; }
+    .card { position: relative; border: 1px solid var(--line); border-radius: var(--radius); padding: 20px; background: linear-gradient(180deg, var(--panel-strong), var(--panel)); box-shadow: var(--shadow); overflow: hidden; }
+    .card::before { content: ""; position: absolute; inset: 0 0 auto 0; height: 3px; background: linear-gradient(90deg, var(--accent), var(--accent-2)); opacity: .82; }
+    .card .num { font-size: 32px; line-height: 1; font-weight: 880; letter-spacing: -.06em; margin-bottom: 10px; }
     .muted { color: var(--muted); }
     .faint { color: var(--faint); }
     .tag { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--line); border-radius: 999px; padding: 4px 9px; font-size: 12px; color: var(--muted); background: rgba(255,255,255,.035); }
     .tag.high { color: var(--good); }
     .tag.medium { color: var(--warn); }
     .tag.low { color: var(--bad); }
+    .callout { border: 1px solid var(--line); border-radius: var(--radius); padding: 18px; background: linear-gradient(135deg, rgba(103,232,249,.10), rgba(192,132,252,.08)); box-shadow: var(--shadow); }
     .matrix-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: var(--radius); background: var(--panel); box-shadow: var(--shadow); }
-    table { width: 100%; border-collapse: collapse; min-width: 980px; }
+    table { width: 100%; border-collapse: collapse; min-width: 1060px; }
     th, td { padding: 15px 14px; border-bottom: 1px solid var(--line); vertical-align: top; text-align: left; }
-    th { position: sticky; top: 0; background: color-mix(in srgb, var(--bg) 72%, var(--panel-strong)); font-size: 12px; color: var(--faint); text-transform: uppercase; letter-spacing: .08em; z-index: 1; }
+    th { position: sticky; top: 0; background: color-mix(in srgb, var(--bg) 74%, var(--panel-strong)); font-size: 12px; color: var(--faint); text-transform: uppercase; letter-spacing: .08em; z-index: 1; }
     td:first-child, th:first-child { font-weight: 780; color: var(--ink); }
     tr:last-child td { border-bottom: 0; }
-    .layer-diagram {
-      display: grid; grid-template-columns: 1fr; gap: 13px; padding: 18px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--panel); box-shadow: var(--shadow);
-    }
-    .lane { display: grid; grid-template-columns: 170px 1fr; gap: 14px; align-items: stretch; }
-    .lane-label { color: var(--faint); font-size: 13px; font-weight: 750; display: flex; align-items: center; }
-    .lane-body { display: flex; flex-wrap: wrap; gap: 10px; }
-    .node { border: 1px solid var(--line); border-radius: 16px; padding: 12px 14px; background: var(--panel-strong); min-width: 160px; }
-    .node strong { display: block; }
-    .node small { color: var(--muted); display: block; margin-top: 2px; }
-    .arrow { align-self: center; color: var(--faint); font-weight: 900; }
-    .tool-card { display: grid; gap: 12px; }
-    .tool-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
-    .tool-head strong { font-size: 21px; letter-spacing: -.035em; }
-    .split { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-    .mini { border: 1px solid var(--line); border-radius: 16px; padding: 13px; background: rgba(0,0,0,.08); }
-    html[data-theme="light"] .mini { background: rgba(15,23,42,.03); }
-    ul.clean { list-style: none; padding: 0; margin: 0; display: grid; gap: 8px; }
-    ul.clean li { padding-left: 18px; position: relative; color: var(--muted); }
-    ul.clean li::before { content: "•"; position: absolute; left: 0; color: var(--accent); }
-    .rec { border-left: 4px solid var(--accent); }
-    .timeline { display: grid; gap: 12px; }
-    .step { display: grid; grid-template-columns: 42px 1fr; gap: 12px; align-items: start; }
-    .step b { width: 42px; height: 42px; border-radius: 14px; display: grid; place-items: center; background: linear-gradient(135deg, var(--accent), var(--accent-2)); color: #07111f; }
+    .stack { display: grid; gap: 10px; }
+    .stack-row { display: grid; grid-template-columns: 230px 1fr; gap: 12px; align-items: stretch; }
+    .stack-label { display: flex; align-items: center; color: var(--faint); font-size: 13px; font-weight: 760; }
+    .stack-body { border: 1px solid var(--line); border-radius: 17px; padding: 13px 14px; background: var(--panel-strong); }
+    .impl-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+    .mini-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+    .mini-list li { color: var(--muted); position: relative; padding-left: 18px; }
+    .mini-list li::before { content: "•"; position: absolute; left: 0; color: var(--accent); }
     .evidence-list { display: grid; gap: 10px; }
     .evidence-list a { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 13px 14px; border: 1px solid var(--line); border-radius: 15px; background: var(--panel); }
     footer { padding: 32px 0 56px; color: var(--faint); font-size: 13px; border-top: 1px solid var(--line); }
     code { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: .92em; background: rgba(127,127,127,.14); padding: .16em .36em; border-radius: .45em; }
-    .callout { border: 1px solid var(--line); border-radius: var(--radius); padding: 18px; background: linear-gradient(135deg, rgba(125,211,252,.10), rgba(167,139,250,.08)); }
-    @media (max-width: 920px) { .cards-4, .cards-3, .split { grid-template-columns: 1fr 1fr; } .lane { grid-template-columns: 1fr; } .nav { align-items: flex-start; flex-direction: column; } }
-    @media (max-width: 640px) { .shell { width: min(100% - 26px, var(--max)); } .cards-4, .cards-3, .split { grid-template-columns: 1fr; } h1 { font-size: 44px; } .navlinks { justify-content: flex-start; } .tool-head { flex-direction: column; } }
+    @media (max-width: 960px) { .cards-4, .cards-3, .impl-grid { grid-template-columns: 1fr 1fr; } .stack-row { grid-template-columns: 1fr; } .nav { align-items: flex-start; flex-direction: column; } }
+    @media (max-width: 640px) { .shell { width: min(100% - 26px, var(--max)); } .cards-4, .cards-3, .impl-grid { grid-template-columns: 1fr; } h1 { font-size: 43px; } .navlinks { justify-content: flex-start; } }
     @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } *, *::before, *::after { transition: none !important; animation: none !important; } }
   </style>
 </head>
@@ -158,27 +123,28 @@
   <header class="hero">
     <div class="shell">
       <nav class="nav" aria-label="Primary navigation">
-        <div class="brand"><span class="brand-mark">AI</span><span>Agent Workflow Research</span></div>
+        <div class="brand"><span class="brand-mark">AI</span><span>Agent Under-Hood Research</span></div>
         <div class="navlinks">
-          <a href="#summary">요약</a>
-          <a href="#matrix">비교표</a>
-          <a href="#tools">도구별 분석</a>
-          <a href="#recommendation">추천</a>
+          <a href="#summary">목적</a>
+          <a href="#taxonomy">분류</a>
+          <a href="#architecture">구성요소</a>
+          <a href="#control-map">Control map</a>
+          <a href="#implementations">Deep dives</a>
           <a href="#evidence">근거</a>
           <button class="theme-toggle" type="button" id="themeToggle">Light</button>
         </div>
       </nav>
-      <div class="kicker">GitHub Pages · static HTML report · 2026-06-26 KST</div>
-      <h1>AI 코딩 에이전트는 “기능”보다 “제어 계층”으로 비교해야 한다.</h1>
-      <p class="lead">Gajae-Code, Hermes Agent, LazyCodex/OmO, OpenAI Codex를 구조적으로 비교해 “어떤 작업을 어느 계층에 맡길지” 결정하기 위한 공개형 리서치 리포트.</p>
+      <div class="kicker">GitHub Pages · LazyCodex/OmO UltraResearch · 2026-06-26 KST</div>
+      <h1>Coding agent를 “제품 비교”가 아니라 “내부 구조”로 해부한다.</h1>
+      <p class="lead">이 프로젝트의 핵심 목적은 코딩 에이전트들이 어떤 종류로 나뉘고, 공통적으로 어떻게 동작하며, 각 구현체가 under the hood에서 어떤 control layer·context layer·tool loop·verification gate를 갖는지 코드/문서/논문/후기 기반으로 단계적으로 분석하는 것이다.</p>
       <div class="hero-actions">
-        <a class="btn primary" href="#recommendation">최종 추천 보기</a>
-        <a class="btn" href="assets/evidence/reconciled-facts.md">근거 원문 보기</a>
+        <a class="btn primary" href="research/coding-agent-underhood-ultraresearch.md">UltraResearch 본문 보기</a>
+        <a class="btn" href="research/coding-agent-source-map.md">Source map 보기</a>
       </div>
       <div class="meta-row">
-        <span class="pill">Repo: <code>ai-agent-workflow-research</code></span>
-        <span class="pill">Format: single <code>index.html</code></span>
-        <span class="pill">No framework</span>
+        <span class="pill">Scope: taxonomy → architecture → implementation → evidence</span>
+        <span class="pill">Method: LazyCodex/OmO <code>$ultraresearch</code> + controller cross-check</span>
+        <span class="pill">Format: static <code>index.html</code></span>
         <span class="pill">Secrets redacted / not committed</span>
       </div>
     </div>
@@ -187,107 +153,124 @@
   <main id="main" class="shell">
     <section id="summary">
       <div class="section-head">
-        <span class="eyebrow">Executive Summary</span>
-        <h2>한 줄 결론</h2>
+        <span class="eyebrow">Project Purpose</span>
+        <h2>주 목적: coding agent가 어떻게 구성되는지 파악한다</h2>
       </div>
       <div class="grid cards-4">
-        <article class="card"><div class="num">01</div><h3>Codex</h3><p class="muted">로컬 repo 작업을 수행하는 기본 agentic coding runtime.</p><span class="tag high">근거 High</span></article>
-        <article class="card"><div class="num">02</div><h3>LazyCodex / OmO</h3><p class="muted">Codex 위에 hook, skill, MCP, ultrawork discipline을 얹는 plugin/harness.</p><span class="tag high">로컬 설치 High</span></article>
-        <article class="card"><div class="num">03</div><h3>Gajae-Code</h3><p class="muted">독립 runner/control surface. interview → plan → execute → evidence 흐름과 tmux/worktree 중심.</p><span class="tag medium">공개 repo 확인 / 로컬 실행 미검증</span></article>
-        <article class="card"><div class="num">04</div><h3>Hermes Agent</h3><p class="muted">메모리, 스킬, gateway, cron, delegation을 가진 persistent coordinator/runtime.</p><span class="tag high">근거 High</span></article>
+        <article class="card"><div class="num">01</div><h3>어떤 agent가 있는가</h3><p class="muted">IDE embedded, CLI, repo-local runner, workflow orchestrator, multi-agent, persistent runtime으로 분류한다.</p><span class="tag high">taxonomy</span></article>
+        <article class="card"><div class="num">02</div><h3>공통 동작 원리</h3><p class="muted">model router, context assembly, repo index, planning loop, tool loop, edit strategy, sandbox, verification을 공통 골격으로 본다.</p><span class="tag high">common loop</span></article>
+        <article class="card"><div class="num">03</div><h3>구현체별 특성</h3><p class="muted">Codex, Claude Code, Aider, OpenHands, SWE-agent, Cursor/Cline/Continue, LazyCodex, Gajae, Hermes를 구조 관점으로 해부한다.</p><span class="tag high">deep dive</span></article>
+        <article class="card"><div class="num">04</div><h3>논문·후기·장단점</h3><p class="muted">SWE-bench, SWE-agent, Agentless, OpenHands, ReAct, Reflexion, Toolformer와 실제 caveat를 연결한다.</p><span class="tag medium">evidence</span></article>
       </div>
       <div class="callout" style="margin-top:16px">
-        <strong>운영 관점 추천:</strong> 긴 호흡의 사용자-facing 자동화/리포팅은 Hermes, repo 단위 구현/검증은 Codex + LazyCodex, 계획-승인-증거가 강한 독립 실행 lane은 Gajae-Code를 후보로 둔다. 단, 현재 로컬에서는 <code>gjc</code> PATH 실행이 확인되지 않았고 LazyCodex는 doctor warning이 있어 “설치됨”과 “완전 정상”을 구분해야 한다.
+        <strong>핵심 관점:</strong> coding agent의 차이는 “LLM이 코드를 쓸 수 있나?”가 아니라 <em>agent loop가 어디에 있고, context를 어떻게 만들며, tool 권한과 verification gate를 어디서 통제하는가</em>에 있다.
       </div>
     </section>
 
-    <section id="layers">
-      <div class="section-head"><span class="eyebrow">Control Layers</span><h2>어디서 workflow를 통제하는가</h2></div>
-      <div class="layer-diagram" role="img" aria-label="AI agent workflow control layers diagram">
-        <div class="lane"><div class="lane-label">Persistent coordinator</div><div class="lane-body"><div class="node"><strong>Hermes Agent</strong><small>memory · skills · gateway · cron · delegation · MCP</small></div></div></div>
-        <div class="lane"><div class="lane-label">Independent runner</div><div class="lane-body"><div class="node"><strong>Gajae-Code / gjc</strong><small>deep-interview · ralplan · ultragoal · team · tmux/worktree</small></div></div></div>
-        <div class="lane"><div class="lane-label">Plugin / harness</div><div class="lane-body"><div class="node"><strong>LazyCodex / OmO</strong><small>Codex hooks · skills · MCP · ultrawork · evidence loop</small></div><span class="arrow">→</span><div class="node"><strong>OpenAI Codex</strong><small>agentic coding runtime · sandbox · approval · MCP/plugins</small></div></div></div>
+    <section id="taxonomy">
+      <div class="section-head"><span class="eyebrow">Taxonomy</span><h2>Loop 위치로 나누는 coding agent 계층</h2></div>
+      <div class="grid cards-3">
+        <article class="card"><h3>IDE embedded</h3><p class="muted">Cursor, Cline/Roo, Continue, Windsurf/Devin Desktop. Editor index와 diff UX가 강하지만 hidden context와 stale index가 위험하다.</p></article>
+        <article class="card"><h3>CLI coding agent</h3><p class="muted">OpenAI Codex CLI, Claude Code, Aider, Goose. Repo-local shell/test 재현성이 강하지만 sandbox와 approval mismatch가 중요하다.</p></article>
+        <article class="card"><h3>Repo-local runner</h3><p class="muted">SWE-agent, OpenHands, Agentless, Gajae-Code. issue → inspect → edit → test → retry 흐름과 benchmark/test oracle이 핵심이다.</p></article>
+        <article class="card"><h3>Workflow orchestrator</h3><p class="muted">LazyCodex/OmO, Gajae, Hermes delegation. planning, approval, evidence, continuation, team lanes를 강제하는 제어층이다.</p></article>
+        <article class="card"><h3>Multi-agent/team</h3><p class="muted">실제 orchestration은 durable queue/state/worktree/tmux/mailbox가 있어야 한다. 단순 role prompt와 구분한다.</p></article>
+        <article class="card"><h3>Persistent runtime</h3><p class="muted">Hermes, Devin-like long-running surfaces. repo session을 넘어 memory, gateway, cron, delegation으로 이어진다.</p></article>
       </div>
     </section>
 
-    <section id="matrix">
-      <div class="section-head"><span class="eyebrow">Comparison Matrix</span><h2>구조적 비교표</h2></div>
+    <section id="architecture">
+      <div class="section-head"><span class="eyebrow">Common Architecture</span><h2>공통 under-the-hood 구성요소</h2></div>
+      <div class="stack">
+        <div class="stack-row"><div class="stack-label">Model client / router</div><div class="stack-body">provider/model 선택, streaming, retries, token budget, task-specific routing. “agent 품질”은 모델만이 아니라 이 router와 prompt/tool layer의 결합이다.</div></div>
+        <div class="stack-row"><div class="stack-label">Prompt / context assembly</div><div class="stack-body">system instructions, repo rules, active files, git diff, search results, memory, failing tests, tool outputs를 압축·선택·정렬한다. 가장 중요한 hidden decision point다.</div></div>
+        <div class="stack-row"><div class="stack-label">Repo index / code graph</div><div class="stack-body">lexical search, semantic index, AST/symbol graph, repo map, LSP/MCP. stale index는 모델 문제가 아니라 context layer 실패다.</div></div>
+        <div class="stack-row"><div class="stack-label">Planning / tool loop</div><div class="stack-body">plan 생성, tool 선택, observation 반영, 계획 수정. ReAct, Reflexion, plan-and-execute 패턴이 제품 워크플로우로 번역되는 지점이다.</div></div>
+        <div class="stack-row"><div class="stack-label">Edit / execution</div><div class="stack-body">patch, diff, search/replace, whole-file rewrite, IDE write API, shell command, browser/MCP tool. over-editing과 patch failure가 여기서 발생한다.</div></div>
+        <div class="stack-row"><div class="stack-label">Sandbox / approval</div><div class="stack-body">filesystem/network/shell 권한, ask/allow/deny, YOLO/auto mode, enterprise policy. safety UX가 아니라 core control plane이다.</div></div>
+        <div class="stack-row"><div class="stack-label">Verification / evidence</div><div class="stack-body">tests, lint, build, benchmark, manual QA, reviewer agent, evidence ledger. “patch 작성”과 “동작 확인”을 분리한다.</div></div>
+        <div class="stack-row"><div class="stack-label">Memory / state</div><div class="stack-body">session transcript, project memory, checkpoints, ledgers, skills, long-term user memory. continuity와 stale state risk가 동시에 생긴다.</div></div>
+      </div>
+    </section>
+
+    <section id="control-map">
+      <div class="section-head"><span class="eyebrow">Control Surface Map</span><h2>구현체를 기능표가 아니라 control layer로 비교</h2></div>
       <div class="matrix-wrap">
         <table>
-          <thead><tr><th>항목</th><th>Codex CLI</th><th>LazyCodex / OmO</th><th>Gajae-Code / gjc</th><th>Hermes Agent</th></tr></thead>
+          <thead><tr><th>구현체 / 계열</th><th>Loop 위치</th><th>Context 핵심</th><th>Edit / 실행</th><th>권한 / sandbox</th><th>State / evidence</th><th>Confidence</th></tr></thead>
           <tbody>
-            <tr><td>정체성</td><td>기본 agentic coding runtime</td><td>Codex 위 plugin/harness layer</td><td>독립 coding-agent runner/control surface</td><td>persistent coordinator/runtime</td></tr>
-            <tr><td>주 실행 표면</td><td><code>codex</code>, <code>codex exec</code>, sandbox/approval, MCP, plugins</td><td><code>omo@sisyphuslabs</code>, <code>omx</code>, hooks, skills, MCP, <code>ulw</code>/<code>$ulw-loop</code></td><td><code>gjc</code>, <code>gjc --tmux</code>, <code>gjc --worktree</code>, workflow skills</td><td><code>hermes</code>, Discord/Telegram gateway, cron, delegate_task, skills/memory</td></tr>
-            <tr><td>강제하는 discipline</td><td>명령 승인, sandbox, review, agent loop</td><td>evidence-first ultrawork, hook lifecycle, planning/execution loop</td><td>interview before guessing, plan before mutation, durable verification</td><td>cross-session memory, procedural skills, scheduled and delegated work</td></tr>
-            <tr><td>장기 작업</td><td>세션/작업 단위. 외부 orchestration 필요</td><td>Codex session 안에서 evidence loop 강화</td><td>tmux/worktree/team 기반으로 장기/병렬 작업 추적에 강함</td><td>gateway/cron/background/delegation으로 장기 운영에 강함</td></tr>
-            <tr><td>근거/증거</td><td>CLI output, git diff/test, review</td><td>.omo/.omx state, hook log, doctor, ledger</td><td>ultragoal goals/checks/evidence, coordinator artifacts</td><td>tool outputs, memory/skills, cron output, platform transcript</td></tr>
-            <tr><td>현재 로컬 상태</td><td><code>codex-cli 0.142.2</code></td><td><code>omo@sisyphuslabs 4.13.0</code> enabled, <code>omx v0.15.0</code>, doctor warning 3개</td><td>PATH에서 <code>gjc</code> 미확인. public repo/npm/docs는 확인</td><td><code>Hermes Agent v0.12.0</code>, gateway running, Discord/Telegram configured</td></tr>
-            <tr><td>주요 caveat</td><td>공식 docs/network 접근성 drift 가능</td><td><code>$</code> composer command를 <code>codex exec</code>로 직접 재현하는 것은 불안정</td><td>beta/experimental 명시. npm repo owner와 inspected repo owner가 엇갈림</td><td>local Hermes는 업데이트 가능 상태. API key 상태는 public report에 미기재/마스킹</td></tr>
+            <tr><td>OpenAI Codex CLI</td><td>local CLI/app runtime</td><td>repo files, instructions, tool outputs</td><td>patch/file/shell tools</td><td>sandbox + approval profile</td><td>session/tool trace, plugin surface</td><td><span class="tag high">High</span></td></tr>
+            <tr><td>Claude Code</td><td>terminal CLI</td><td>repo + instructions; internals partly closed</td><td>terminal/file/tool use</td><td>documented permissions</td><td>session/config docs</td><td><span class="tag medium">Medium-High</span></td></tr>
+            <tr><td>Aider</td><td>git repo CLI chat</td><td>explicit files + RepoMap</td><td>model-specific edit formats, patches</td><td>git/file/test controls</td><td>git commits, lint/test loops</td><td><span class="tag high">High</span></td></tr>
+            <tr><td>OpenHands</td><td>app/runtime platform</td><td>event stream, runtime state, shell/browser/code</td><td>actions/observations in sandbox</td><td>local/docker/remote runtime</td><td>conversation/events/evals</td><td><span class="tag high">High</span></td></tr>
+            <tr><td>SWE-agent / Agentless</td><td>repo-local benchmark runner / pipeline</td><td>issue text, localization, tests</td><td>tool-mediated edits / generated patches</td><td>benchmark/container env</td><td>trajectory, test result, score</td><td><span class="tag high">High</span></td></tr>
+            <tr><td>Cursor / Cline / Continue</td><td>IDE or extension host</td><td>active editor + index + rules/memory</td><td>editor diff/checkpoint/shell</td><td>modal approval, policy, auto modes</td><td>checkpoints, memory bank, IDE state</td><td><span class="tag medium">Medium-High</span></td></tr>
+            <tr><td>LazyCodex / OmO</td><td>Codex plugin/harness layer</td><td>Codex context + injected hooks/skills/rules</td><td>Codex tools under ultrawork discipline</td><td>Codex policy + OmO hooks</td><td><code>.omo</code>, skills, evidence loops</td><td><span class="tag high">High local</span></td></tr>
+            <tr><td>Gajae-Code</td><td>independent runner/control surface</td><td>interview → plan → goal state</td><td>tmux/worktree/team execution</td><td>external runner boundaries</td><td><code>.gjc</code> specs/plans/ledgers</td><td><span class="tag medium">Medium</span></td></tr>
+            <tr><td>Hermes Agent</td><td>persistent coordinator/runtime</td><td>memory, skills, messaging identity, tools</td><td>delegates to tools/runtimes</td><td>toolsets, gateways, backend controls</td><td>memory, skills, cron, session search</td><td><span class="tag high">High local</span></td></tr>
           </tbody>
         </table>
       </div>
     </section>
 
-    <section id="tools">
-      <div class="section-head"><span class="eyebrow">Tool-by-tool Analysis</span><h2>도구별 강점, 약점, 적합한 사용처</h2></div>
-      <div class="grid cards-3">
-        <article class="card tool-card"><div class="tool-head"><strong>Codex CLI</strong><span class="tag high">High</span></div><p class="muted">baseline runtime. 로컬 코드 변경, 테스트, git diff, sandbox/approval을 수행하는 중심 실행기.</p><div class="split"><div class="mini"><h3>Best for</h3><ul class="clean"><li>repo 단위 구현</li><li>테스트/리팩토링</li><li>non-interactive exec</li></ul></div><div class="mini"><h3>Avoid when</h3><ul class="clean"><li>장기 스케줄링이 핵심</li><li>사용자 memory/gateway가 필요</li></ul></div></div></article>
-        <article class="card tool-card"><div class="tool-head"><strong>LazyCodex / OmO</strong><span class="tag high">High local</span></div><p class="muted">Codex lifecycle에 hooks/skills/MCP를 연결해 planning과 verified completion을 강화한다.</p><div class="split"><div class="mini"><h3>Best for</h3><ul class="clean"><li>Codex 안 evidence loop</li><li>ultrawork discipline</li><li>plugin hook 기반 강화</li></ul></div><div class="mini"><h3>Caveat</h3><ul class="clean"><li>doctor warning 존재</li><li>composer command surface 의존</li></ul></div></div></article>
-        <article class="card tool-card"><div class="tool-head"><strong>Gajae-Code</strong><span class="tag medium">Medium</span></div><p class="muted">독립 runner로 계획·비평·실행·증거를 명시하고 tmux/worktree/team으로 병렬/장기 작업을 다룬다.</p><div class="split"><div class="mini"><h3>Best for</h3><ul class="clean"><li>승인 가능한 계획</li><li>tmux visible lanes</li><li>coordinator bridge</li></ul></div><div class="mini"><h3>Caveat</h3><ul class="clean"><li>로컬 gjc 미설치</li><li>beta stage</li></ul></div></div></article>
-        <article class="card tool-card"><div class="tool-head"><strong>Hermes Agent</strong><span class="tag high">High</span></div><p class="muted">메신저, 스케줄, memory, skills, MCP, subagent를 묶는 지속형 coordinator.</p><div class="split"><div class="mini"><h3>Best for</h3><ul class="clean"><li>Discord/Telegram 운영</li><li>반복 작업/cron</li><li>리서치와 조율</li></ul></div><div class="mini"><h3>Caveat</h3><ul class="clean"><li>coding runtime 자체보다 조율자 성격</li><li>모델/도구 설정 품질 의존</li></ul></div></div></article>
+    <section id="implementations">
+      <div class="section-head"><span class="eyebrow">Implementation Deep Dives</span><h2>이번 UltraResearch의 주요 판정</h2></div>
+      <div class="impl-grid">
+        <article class="card"><h3>Codex / Claude Code</h3><ul class="mini-list"><li>CLI/runtime agent의 핵심은 sandbox, approval, project instructions, tool execution이다.</li><li>closed/internal context ranking은 문서화된 control surface와 분리해 낮은 confidence로 둔다.</li></ul></article>
+        <article class="card"><h3>Aider</h3><ul class="mini-list"><li>RepoMap과 edit format이 공개되어 context compression과 patch strategy를 연구하기 좋다.</li><li>lint/test integration은 verification gate 연구에 유용하다.</li></ul></article>
+        <article class="card"><h3>OpenHands / SWE-agent / Agentless</h3><ul class="mini-list"><li>runtime, sandbox, action/observation, benchmark harness가 agent 품질에 직접 관여한다.</li><li>Agentless는 모든 작업에 full autonomous loop가 필요한 것은 아님을 보여준다.</li></ul></article>
+        <article class="card"><h3>IDE-style agents</h3><ul class="mini-list"><li>IDE index와 editor diff UX가 강점이다.</li><li>hidden context selection, stale index, approval fatigue가 주요 실패 원인이다.</li></ul></article>
+        <article class="card"><h3>LazyCodex / OmO</h3><ul class="mini-list"><li>로컬 확인상 Codex 위 lifecycle hooks, skills, MCP, ultrawork discipline을 얹는 harness다.</li><li>manifest 선언과 실제 runtime callable surface는 다음 단계에서 분리 검증해야 한다.</li></ul></article>
+        <article class="card"><h3>Gajae-Code / Hermes</h3><ul class="mini-list"><li>Gajae는 interview/plan/ultragoal/team 중심의 runner로 보되 local <code>gjc</code> 실행은 미검증 caveat가 남는다.</li><li>Hermes는 repo editor라기보다 memory/skills/cron/gateway/delegation이 있는 persistent coordinator다.</li></ul></article>
       </div>
     </section>
 
-    <section id="workflow">
-      <div class="section-head"><span class="eyebrow">Suggested Workflow</span><h2>실전 운영 플로우</h2></div>
-      <div class="timeline">
-        <div class="step"><b>1</b><div><h3>Research / Planning</h3><p class="muted">Hermes에서 리서치와 일정/채널 조율을 하고, 필요한 경우 Gajae의 <code>deep-interview</code>/<code>ralplan</code>이나 LazyCodex <code>ulw-plan</code> 성격의 계획 단계를 사용한다.</p></div></div>
-        <div class="step"><b>2</b><div><h3>Implementation</h3><p class="muted">코드 구현은 Codex를 baseline으로 두고, Codex 내부 discipline이 필요하면 LazyCodex/OmO를 켠 상태에서 진행한다.</p></div></div>
-        <div class="step"><b>3</b><div><h3>Long-running / Parallel</h3><p class="muted">작업이 길고 눈으로 추적해야 하면 Gajae-Code의 tmux/worktree/team lane을 후보로 둔다. 여러 독립 workstream은 Hermes <code>delegate_task</code>로 분리할 수 있다.</p></div></div>
-        <div class="step"><b>4</b><div><h3>Evidence / Report</h3><p class="muted">테스트 출력, git status, doctor warning, public docs/source index를 분리해 GitHub Pages 리포트에 남긴다.</p></div></div>
-      </div>
-    </section>
-
-    <section id="recommendation">
-      <div class="section-head"><span class="eyebrow">Final Recommendation</span><h2>지금 당장 추천 조합</h2></div>
+    <section id="papers">
+      <div class="section-head"><span class="eyebrow">Papers & Failure Patterns</span><h2>논문과 실제 caveat를 architecture 원인으로 연결</h2></div>
       <div class="grid cards-3">
-        <article class="card rec"><h3>기본 조합</h3><p class="muted"><strong>Hermes → Codex + LazyCodex</strong>. Hermes가 사용자 채널/기억/스케줄을 잡고, Codex+LazyCodex가 repo 내부 구현과 evidence loop를 담당한다.</p></article>
-        <article class="card rec"><h3>리스크 큰 작업</h3><p class="muted"><strong>계획 승인 gate를 별도로 둔다.</strong> Gajae-Code의 plan-before-mutation 철학 또는 Hermes subagent two-stage review로 spec review와 quality review를 분리한다.</p></article>
-        <article class="card rec"><h3>다음 실험</h3><p class="muted"><code>gjc</code>를 로컬에 설치/스모크 테스트한 뒤, Hermes coordinator bridge와 실제 tmux/worktree lane 연결을 검증한다.</p></article>
+        <article class="card"><h3>SWE-bench 계열</h3><p class="muted">repo-level patch evaluation을 가능하게 하지만 benchmark score를 제품 품질로 직접 읽으면 안 된다. incomplete tests와 semantic correctness gap이 남는다.</p></article>
+        <article class="card"><h3>ReAct / Reflexion / Toolformer</h3><p class="muted">reasoning-action loop, self-critique, tool use, planning 패턴의 이론적 기반이다. 특정 제품 구현의 정확성을 자동 보증하지는 않는다.</p></article>
+        <article class="card"><h3>실패 패턴</h3><p class="muted">context rot, over-editing, flaky tests, sandbox mismatch, stale index, hidden state drift, approval fatigue, benchmark overfitting을 architecture cause로 추적한다.</p></article>
       </div>
     </section>
 
     <section id="evidence">
-      <div class="section-head"><span class="eyebrow">Evidence</span><h2>근거 파일과 검증 조건</h2></div>
+      <div class="section-head"><span class="eyebrow">Evidence & Artifacts</span><h2>리서치 산출물과 검증 파일</h2></div>
       <div class="evidence-list">
-        <a href="assets/evidence/reconciled-facts.md"><span>Reconciled facts — controller adjudication</span><span>↗</span></a>
-        <a href="assets/evidence/codex-baseline.md"><span>Codex baseline evidence</span><span>↗</span></a>
-        <a href="assets/evidence/lazycodex-crosscheck.md"><span>LazyCodex / OmO cross-check</span><span>↗</span></a>
-        <a href="assets/evidence/gajae-code-crosscheck.md"><span>Gajae-Code / gjc cross-check</span><span>↗</span></a>
-        <a href="assets/evidence/hermes-crosscheck.md"><span>Hermes Agent cross-check</span><span>↗</span></a>
-        <a href="assets/evidence/agent-run-notes.md"><span>Agent run notes and limitations</span><span>↗</span></a>
+        <a href="research/coding-agent-underhood-ultraresearch.md"><span>UltraResearch main report</span><code>research/*.md</code></a>
+        <a href="research/coding-agent-taxonomy.md"><span>Coding Agent Taxonomy</span><code>taxonomy</code></a>
+        <a href="research/coding-agent-source-map.md"><span>Source map: official docs/source/papers/local evidence</span><code>source map</code></a>
+        <a href="research/coding-agent-open-questions.md"><span>Open questions and next research steps</span><code>next</code></a>
+        <a href="assets/evidence/coding-agent-underhood-crosscheck.md"><span>Controller cross-check notes</span><code>evidence</code></a>
+        <a href="assets/evidence/reconciled-facts.md"><span>Earlier Gajae/Hermes/LazyCodex/Codex reconciliation</span><code>evidence</code></a>
+      </div>
+    </section>
+
+    <section id="next">
+      <div class="section-head"><span class="eyebrow">Next Steps</span><h2>다음 단계는 source-level deep dive</h2></div>
+      <div class="callout">
+        <p><strong>권장 순서:</strong> 1) SHA-pinned repo deep dive, 2) public issue/review sweep, 3) benchmark critique full-paper read, 4) local reproducible traces 비교, 5) 각 agent의 loop/context/permission/edit/verification 구현을 코드 경로까지 추적.</p>
+        <p class="muted">이번 페이지는 방향을 바로잡은 entry point이고, 전체 근거와 세부 주장은 Markdown report에 둔다.</p>
       </div>
     </section>
   </main>
 
   <footer>
-    <div class="shell">
-      <p><strong>AI Agent Workflow Research</strong> — public static report. 민감정보, API key, credential 값은 포함하지 않는다.</p>
-      <p>Generated and verified locally for GitHub Pages. Last updated: 2026-06-26 KST.</p>
-    </div>
+    <div class="shell">AI Coding Agent Under-the-Hood Research · Static GitHub Pages · no framework · generated with LazyCodex/OmO UltraResearch and controller cross-check.</div>
   </footer>
+
   <script>
     const root = document.documentElement;
-    const btn = document.getElementById('themeToggle');
+    const button = document.getElementById('themeToggle');
     const saved = localStorage.getItem('theme');
-    if (saved) root.dataset.theme = saved;
-    function syncButton(){ btn.textContent = root.dataset.theme === 'dark' ? 'Light' : 'Dark'; }
-    syncButton();
-    btn.addEventListener('click', () => {
-      root.dataset.theme = root.dataset.theme === 'dark' ? 'light' : 'dark';
+    if (saved === 'light' || saved === 'dark') root.dataset.theme = saved;
+    const sync = () => { button.textContent = root.dataset.theme === 'light' ? 'Dark' : 'Light'; };
+    button.addEventListener('click', () => {
+      root.dataset.theme = root.dataset.theme === 'light' ? 'dark' : 'light';
       localStorage.setItem('theme', root.dataset.theme);
-      syncButton();
+      sync();
     });
+    sync();
   </script>
 </body>
 </html>

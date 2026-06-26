@@ -9,5 +9,9 @@ node_modules/
 # keep public evidence explicit under assets/evidence/
 
 # internal generated research drafts
-research/
+research/*
+!research/coding-agent-underhood-ultraresearch.md
+!research/coding-agent-taxonomy.md
+!research/coding-agent-source-map.md
+!research/coding-agent-open-questions.md
 research-prompt.md

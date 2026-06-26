@@ -5,7 +5,7 @@
 ## 로컬 관찰
 
 - `hermes --version`: `Hermes Agent v0.12.0 (2026.4.30)`.
-- Project: `/Users/sangwan/.hermes/hermes-agent`.
+- Project: `~/.hermes/hermes-agent`.
 - Provider: OpenAI Codex / model `gpt-5.5`로 표시됨.
 - Gateway service: running.
 - Messaging platforms: Telegram, Discord configured.

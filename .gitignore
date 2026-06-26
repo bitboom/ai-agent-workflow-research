@@ -1,0 +1,13 @@
+# local/internal agent state
+.omx/
+.omo/
+.hermes/
+.DS_Store
+node_modules/
+*.log
+
+# keep public evidence explicit under assets/evidence/
+
+# internal generated research drafts
+research/
+research-prompt.md

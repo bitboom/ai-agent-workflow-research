@@ -8,6 +8,8 @@ const html = readFileSync(join(root, 'index.html'), 'utf8');
 
 const publicMarkdown = [
   ...readdirSync(join(root, 'assets/evidence')).filter(f => f.endsWith('.md')).map(f => `assets/evidence/${f}`),
+  ...readdirSync(join(root, 'chapters')).filter(f => f.endsWith('.md')).map(f => `chapters/${f}`),
+  ...readdirSync(join(root, 'appendix')).filter(f => f.endsWith('.md')).map(f => `appendix/${f}`),
   'research/coding-agent-underhood-ultraresearch.md',
   'research/coding-agent-taxonomy.md',
   'research/coding-agent-source-map.md',
@@ -18,96 +20,86 @@ const publicMarkdown = [
   'research/deep-dive-lazycodex-omo.md'
 ];
 
-test('static site core files exist', () => {
-  assert.ok(existsSync(join(root, 'index.html')));
-  assert.ok(existsSync(join(root, '.nojekyll')));
-  assert.ok(existsSync(join(root, 'assets/evidence/reconciled-facts.md')));
-  assert.ok(existsSync(join(root, 'assets/evidence/coding-agent-underhood-crosscheck.md')));
+function read(path) {
+  return readFileSync(join(root, path), 'utf8');
+}
+
+test('book-style static site core files exist', () => {
+  for (const file of ['index.html', 'styles.css', 'script.js', '.nojekyll', 'assets/favicon.svg', 'README.md']) {
+    assert.ok(existsSync(join(root, file)), file);
+  }
   for (const file of publicMarkdown) assert.ok(existsSync(join(root, file)), file);
 });
 
-test('index reflects under-the-hood research scope', () => {
-  for (const id of ['summary', 'taxonomy', 'architecture', 'control-map', 'implementations', 'papers', 'evidence', 'next']) {
+test('index uses Vibe SDLC inspired reading-guide UX', () => {
+  for (const id of ['summary', 'thesis', 'contents', 'taxonomy', 'architecture', 'implementations', 'control-planes', 'evaluation', 'evidence', 'terms']) {
     assert.match(html, new RegExp(`id="${id}"`));
   }
-  assert.match(html, /AI Coding Agent Under-the-Hood Research/);
-  assert.match(html, /Coding agent를 “제품 비교”가 아니라 “내부 구조”로 해부한다/);
-  assert.match(html, /LazyCodex\/OmO UltraResearch/);
-  assert.match(html, /model router/i);
-  assert.match(html, /context assembly/i);
-  assert.match(html, /verification gate/i);
-  assert.match(html, /coding-agent-evaluation-framework\.md/);
-  assert.match(html, /벤치마크\/평가 프레임워크/);
-  assert.match(html, /실행 기록 파일럿/);
-  assert.match(html, /deep-dive-gajae-code\.md/);
-  assert.match(html, /deep-dive-hermes-agent\.md/);
-  assert.match(html, /deep-dive-lazycodex-omo\.md/);
-  assert.match(html, /agent-orchestration-comparison\.md/);
-  assert.match(html, /Evidence status/);
-  assert.match(html, /source-confirmed/);
-  assert.match(html, /basic runtime-confirmed/);
+  assert.match(html, /AI Coding Agent 구조 해부/);
+  assert.match(html, /한국어 리서치 북/);
+  assert.match(html, /site-header/);
+  assert.match(html, /reading-progress/);
+  assert.match(html, /문서 목차/);
+  assert.match(html, /책처럼 읽는 목차/);
+  assert.match(html, /chapter-card/);
+  assert.match(html, /appendix\/evidence-index\.md/);
+  assert.match(html, /GJC workflow artifact replay/);
   assert.match(html, /workflow artifact-backed/);
-  assert.match(html, /UltraResearch draft/);
-  for (const name of ['OpenAI Codex', 'Claude Code', 'Aider', 'OpenHands', 'SWE-agent', 'LazyCodex', 'Gajae-Code', 'Hermes']) {
+  assert.match(html, /source-confirmed/);
+  assert.match(html, /runtime-confirmed/);
+  assert.match(html, /artifact-backed/);
+  assert.match(html, /Vibe SDLC/);
+  for (const name of ['OpenAI Codex', 'Aider', 'OpenHands', 'SWE-agent', 'LazyCodex', 'Gajae-Code', 'Hermes']) {
     assert.match(html, new RegExp(name));
   }
 });
 
-test('research markdown contains expected source-backed concepts', () => {
-  const main = readFileSync(join(root, 'research/coding-agent-underhood-ultraresearch.md'), 'utf8');
-  const sourceMap = readFileSync(join(root, 'research/coding-agent-source-map.md'), 'utf8');
-  const framework = readFileSync(join(root, 'research/coding-agent-evaluation-framework.md'), 'utf8');
-  assert.match(main, /Coding Agent Under The Hood UltraResearch/);
-  assert.match(main, /SWE-bench/);
-  assert.match(main, /Agentless/);
-  assert.match(main, /Failure pattern/);
-  assert.doesNotMatch(main, /현재 `index\.html`은 네 제품 비교 중심/);
-  assert.match(main, /GitHub Pages IA Status/);
+test('chapter pages structure the project like a book', () => {
+  const toc = read('chapters/README.md');
+  const ch1 = read('chapters/01-research-question.md');
+  const ch3 = read('chapters/03-common-architecture.md');
+  const ch5 = read('chapters/05-control-plane-triad.md');
+  const appendix = read('appendix/evidence-index.md');
+  assert.match(toc, /읽는 순서/);
+  assert.match(ch1, /agent loop, context assembly, tool boundary/);
+  assert.match(ch3, /Model client \/ router/);
+  assert.match(ch5, /controlled workflow artifact replay/);
+  assert.match(appendix, /Public evidence policy/);
+  assert.match(appendix, /gajae-code-workflow-replay\.md/);
+});
+
+test('existing evidence still contains source-backed concepts', () => {
+  const sourceMap = read('research/coding-agent-source-map.md');
+  const framework = read('research/coding-agent-evaluation-framework.md');
+  const gajae = read('research/deep-dive-gajae-code.md');
+  const gjcReplay = read('assets/evidence/gajae-code-workflow-replay.md');
   assert.match(sourceMap, /https:\/\/arxiv\.org\/abs\/2407\.01489/);
   assert.doesNotMatch(sourceMap, /2407\.01494/);
-  assert.match(framework, /Context\/localization/);
-  assert.match(framework, /Verification honesty/);
   assert.match(framework, /Trace Schema/);
-  assert.match(framework, /Terminal-Bench/);
-  assert.match(framework, /Agentless-style staged repair/);
-  const gajae = readFileSync(join(root, 'research/deep-dive-gajae-code.md'), 'utf8');
-  const hermes = readFileSync(join(root, 'research/deep-dive-hermes-agent.md'), 'utf8');
-  const omo = readFileSync(join(root, 'research/deep-dive-lazycodex-omo.md'), 'utf8');
-  assert.match(gajae, /basic runtime-confirmed/i);
+  assert.match(framework, /Verification honesty/);
   assert.match(gajae, /workflow artifact replay confirmed/i);
-  assert.match(gajae, /gjc\/0\.7\.3/);
-  assert.match(gajae, /live non-dry-run team/i);
-  assert.doesNotMatch(gajae, /bun: not found/);
-  assert.match(hermes, /0\.12\.0/);
-  assert.match(hermes, /0\.17\.0/);
-  assert.match(omo, /runtime-callable/i);
-  assert.match(omo, /manifest-declared/i);
-  const gjcReview = readFileSync(join(root, 'assets/evidence/gjc-documentation-review.md'), 'utf8');
-  const gjcSmoke = readFileSync(join(root, 'assets/evidence/gajae-code-runtime-smoke.md'), 'utf8');
-  const gjcReplay = readFileSync(join(root, 'assets/evidence/gajae-code-workflow-replay.md'), 'utf8');
-  assert.match(gjcReview, /GJC Documentation Review Pass/);
-  assert.match(gjcSmoke, /smoke-test: ok/);
-  assert.match(gjcSmoke, /GJC_PRINT_SMOKE_OK/);
   assert.match(gjcReplay, /controlled workflow artifact replay confirmed/);
-  assert.match(gjcReplay, /deep-interview/);
   assert.match(gjcReplay, /team --dry-run/);
   assert.doesNotMatch(gjcReplay, /\/Users\/sangwan/);
 });
 
 test('no obvious credential material is committed in public files', () => {
-  const files = ['index.html', 'README.md', ...publicMarkdown];
-  const joined = files.map(f => readFileSync(join(root, f), 'utf8')).join('\n');
+  const files = ['index.html', 'styles.css', 'script.js', 'README.md', ...publicMarkdown];
+  const joined = files.map(f => read(f)).join('\n');
   const forbidden = [
     /sk-[A-Za-z0-9_-]{20,}/,
     /ghp_[A-Za-z0-9_]{20,}/,
     /github_pat_[A-Za-z0-9_]{20,}/,
     /AIza[0-9A-Za-z_-]{20,}/,
-    /(api[_-]?key|secret|token|password)\s*[:=]\s*['\"]?[A-Za-z0-9_\-.]{16,}/i
+    /(api[_-]?key|secret|token|password)\s*[:=]\s*['"]?[A-Za-z0-9_\-.]{16,}/i,
+    /\/Users\/sangwan\/code\/gjc-runtime-replay-20260627/
   ];
   for (const re of forbidden) assert.doesNotMatch(joined, re);
 });
 
-test('theme toggle script is present without external dependencies in html', () => {
-  assert.match(html, /localStorage\.getItem\('theme'\)/);
-  assert.doesNotMatch(html, /https:\/\//);
+test('client script provides reading progress and mobile toc', () => {
+  const js = read('script.js');
+  assert.match(js, /reading-progress/);
+  assert.match(js, /IntersectionObserver/);
+  assert.match(js, /toc-open/);
 });

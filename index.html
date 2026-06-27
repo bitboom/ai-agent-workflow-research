@@ -1,292 +1,219 @@
 <!doctype html>
-<html lang="ko" data-theme="dark">
+<html lang="ko">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="description" content="Coding agent architecture under-the-hood research: taxonomy, common components, implementation deep dives, papers, evidence, and open questions." />
-  <title>AI Coding Agent Under-the-Hood Research</title>
-  <style>
-    :root {
-      color-scheme: dark;
-      --bg: #070a12;
-      --bg-2: #0d1220;
-      --panel: rgba(255,255,255,.065);
-      --panel-strong: rgba(255,255,255,.105);
-      --ink: #f5f7fb;
-      --muted: #aeb8cc;
-      --faint: #7f8aa3;
-      --line: rgba(255,255,255,.13);
-      --accent: #67e8f9;
-      --accent-2: #c084fc;
-      --good: #86efac;
-      --warn: #facc15;
-      --bad: #fda4af;
-      --shadow: 0 24px 80px rgba(0,0,0,.42);
-      --radius: 22px;
-      --max: 1180px;
-    }
-    html[data-theme="light"] {
-      color-scheme: light;
-      --bg: #f8fafc;
-      --bg-2: #edf2f7;
-      --panel: rgba(255,255,255,.86);
-      --panel-strong: #fff;
-      --ink: #111827;
-      --muted: #475569;
-      --faint: #64748b;
-      --line: rgba(15,23,42,.12);
-      --accent: #0369a1;
-      --accent-2: #7e22ce;
-      --good: #15803d;
-      --warn: #a16207;
-      --bad: #be123c;
-      --shadow: 0 20px 70px rgba(15,23,42,.12);
-    }
-    * { box-sizing: border-box; }
-    html { scroll-behavior: smooth; }
-    body {
-      margin: 0;
-      font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "SF Pro Display", "Apple SD Gothic Neo", "Noto Sans KR", "Segoe UI", sans-serif;
-      background:
-        radial-gradient(circle at 10% 0%, rgba(103,232,249,.18), transparent 34rem),
-        radial-gradient(circle at 90% 5%, rgba(192,132,252,.18), transparent 32rem),
-        linear-gradient(180deg, var(--bg), var(--bg-2));
-      color: var(--ink);
-      line-height: 1.62;
-      min-height: 100vh;
-    }
-    a { color: var(--accent); text-decoration: none; }
-    a:hover { text-decoration: underline; }
-    .shell { width: min(var(--max), calc(100% - 40px)); margin: 0 auto; }
-    .skip { position: absolute; left: -999px; top: 12px; background: var(--ink); color: var(--bg); padding: 10px 14px; border-radius: 12px; z-index: 10; }
-    .skip:focus { left: 16px; }
-    header.hero { padding: 50px 0 32px; }
-    .nav { display: flex; align-items: center; justify-content: space-between; gap: 18px; padding: 12px 0 28px; }
-    .brand { display: flex; align-items: center; gap: 12px; font-weight: 820; letter-spacing: -.02em; }
-    .brand-mark { width: 38px; height: 38px; display: grid; place-items: center; border-radius: 12px; background: linear-gradient(135deg, var(--accent), var(--accent-2)); color: #07111f; font-weight: 900; box-shadow: var(--shadow); }
-    .navlinks { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
-    .navlinks a, .theme-toggle { border: 1px solid var(--line); color: var(--muted); background: var(--panel); padding: 8px 11px; border-radius: 999px; font-size: 13px; backdrop-filter: blur(16px); }
-    .theme-toggle { cursor: pointer; color: var(--ink); font: inherit; }
-    .kicker { color: var(--accent); font-size: 13px; font-weight: 780; text-transform: uppercase; letter-spacing: .14em; }
-    h1 { margin: 14px 0 14px; max-width: 980px; font-size: clamp(42px, 7vw, 84px); line-height: .94; letter-spacing: -.07em; }
-    .lead { margin: 0; max-width: 920px; color: var(--muted); font-size: clamp(18px, 2vw, 23px); letter-spacing: -.02em; }
-    .hero-actions { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 26px; }
-    .btn { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 11px 16px; border-radius: 14px; border: 1px solid var(--line); background: var(--panel-strong); color: var(--ink); box-shadow: 0 10px 30px rgba(0,0,0,.12); font-weight: 740; }
-    .btn.primary { background: linear-gradient(135deg, var(--accent), var(--accent-2)); color: #07111f; border: 0; }
-    .meta-row { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 24px; color: var(--faint); font-size: 13px; }
-    .pill { border: 1px solid var(--line); background: var(--panel); border-radius: 999px; padding: 6px 10px; }
-    main { padding-bottom: 70px; }
-    section { scroll-margin-top: 22px; margin-top: 30px; }
-    .section-head { margin: 0 0 16px; display: grid; gap: 4px; }
-    .eyebrow { color: var(--accent); font-weight: 800; font-size: 12px; letter-spacing: .13em; text-transform: uppercase; }
-    h2 { margin: 0; font-size: clamp(26px, 3vw, 40px); letter-spacing: -.045em; line-height: 1.08; }
-    h3 { margin: 0 0 8px; font-size: 18px; letter-spacing: -.025em; }
-    p { margin: 0 0 12px; }
-    .grid { display: grid; gap: 16px; }
-    .cards-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
-    .cards-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-    .card { position: relative; border: 1px solid var(--line); border-radius: var(--radius); padding: 20px; background: linear-gradient(180deg, var(--panel-strong), var(--panel)); box-shadow: var(--shadow); overflow: hidden; }
-    .card::before { content: ""; position: absolute; inset: 0 0 auto 0; height: 3px; background: linear-gradient(90deg, var(--accent), var(--accent-2)); opacity: .82; }
-    .card .num { font-size: 32px; line-height: 1; font-weight: 880; letter-spacing: -.06em; margin-bottom: 10px; }
-    .muted { color: var(--muted); }
-    .faint { color: var(--faint); }
-    .tag { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--line); border-radius: 999px; padding: 4px 9px; font-size: 12px; color: var(--muted); background: rgba(255,255,255,.035); }
-    .tag.high { color: var(--good); }
-    .tag.medium { color: var(--warn); }
-    .tag.low { color: var(--bad); }
-    .callout { border: 1px solid var(--line); border-radius: var(--radius); padding: 18px; background: linear-gradient(135deg, rgba(103,232,249,.10), rgba(192,132,252,.08)); box-shadow: var(--shadow); }
-    .matrix-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: var(--radius); background: var(--panel); box-shadow: var(--shadow); }
-    table { width: 100%; border-collapse: collapse; min-width: 1060px; }
-    th, td { padding: 15px 14px; border-bottom: 1px solid var(--line); vertical-align: top; text-align: left; }
-    th { position: sticky; top: 0; background: color-mix(in srgb, var(--bg) 74%, var(--panel-strong)); font-size: 12px; color: var(--faint); text-transform: uppercase; letter-spacing: .08em; z-index: 1; }
-    td:first-child, th:first-child { font-weight: 780; color: var(--ink); }
-    tr:last-child td { border-bottom: 0; }
-    .stack { display: grid; gap: 10px; }
-    .stack-row { display: grid; grid-template-columns: 230px 1fr; gap: 12px; align-items: stretch; }
-    .stack-label { display: flex; align-items: center; color: var(--faint); font-size: 13px; font-weight: 760; }
-    .stack-body { border: 1px solid var(--line); border-radius: 17px; padding: 13px 14px; background: var(--panel-strong); }
-    .impl-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
-    .mini-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
-    .mini-list li { color: var(--muted); position: relative; padding-left: 18px; }
-    .mini-list li::before { content: "•"; position: absolute; left: 0; color: var(--accent); }
-    .evidence-list { display: grid; gap: 10px; }
-    .evidence-list a { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 13px 14px; border: 1px solid var(--line); border-radius: 15px; background: var(--panel); }
-    footer { padding: 32px 0 56px; color: var(--faint); font-size: 13px; border-top: 1px solid var(--line); }
-    code { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: .92em; background: rgba(127,127,127,.14); padding: .16em .36em; border-radius: .45em; }
-    @media (max-width: 960px) { .cards-4, .cards-3, .impl-grid { grid-template-columns: 1fr 1fr; } .stack-row { grid-template-columns: 1fr; } .nav { align-items: flex-start; flex-direction: column; } }
-    @media (max-width: 640px) { .shell { width: min(100% - 26px, var(--max)); } .cards-4, .cards-3, .impl-grid { grid-template-columns: 1fr; } h1 { font-size: 43px; } .navlinks { justify-content: flex-start; } }
-    @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } *, *::before, *::after { transition: none !important; animation: none !important; } }
-  </style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AI Coding Agent 구조 해부 — 한국어 리서치 북</title>
+  <meta name="description" content="AI coding agent를 제품 비교가 아니라 agent loop, context, tool use, sandbox, verification, state, orchestration 관점에서 읽는 한국어 문서형 리서치 북입니다.">
+  <meta name="author" content="bitboom">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://bitboom.github.io/ai-agent-workflow-research/">
+  <meta property="og:locale" content="ko_KR">
+  <meta property="og:site_name" content="AI Agent Workflow Research">
+  <meta property="og:title" content="AI Coding Agent 구조 해부">
+  <meta property="og:description" content="Codex, Aider, OpenHands, SWE-agent, Gajae-Code, Hermes, LazyCodex/OmO를 under-the-hood 관점으로 구조화한 리서치 북.">
+  <meta property="og:type" content="article">
+  <meta property="og:url" content="https://bitboom.github.io/ai-agent-workflow-research/">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="AI Coding Agent 구조 해부">
+  <meta name="twitter:description" content="AI coding agent under-the-hood 한국어 리서치 북">
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <a class="skip" href="#main">본문으로 이동</a>
-  <header class="hero">
-    <div class="shell">
-      <nav class="nav" aria-label="Primary navigation">
-        <div class="brand"><span class="brand-mark">AI</span><span>Agent Under-Hood Research</span></div>
-        <div class="navlinks">
-          <a href="#summary">목적</a>
-          <a href="#taxonomy">분류</a>
-          <a href="#architecture">구성요소</a>
-          <a href="#control-map">Control map</a>
-          <a href="#implementations">Deep dives</a>
-          <a href="#evidence">근거</a>
-          <button class="theme-toggle" type="button" id="themeToggle">Light</button>
-        </div>
-      </nav>
-      <div class="kicker">GitHub Pages · LazyCodex/OmO UltraResearch + GJC review/replay · 2026-06-27 KST</div>
-      <h1>Coding agent를 “제품 비교”가 아니라 “내부 구조”로 해부한다.</h1>
-      <p class="lead">이 프로젝트의 핵심 목적은 코딩 에이전트들이 어떤 종류로 나뉘고, 공통적으로 어떻게 동작하며, 각 구현체가 under the hood에서 어떤 control layer·context layer·tool loop·verification gate를 갖는지 코드/문서/논문/후기 기반으로 단계적으로 분석하는 것이다.</p>
-      <div class="hero-actions">
-        <a class="btn primary" href="assets/evidence/source-level-architecture-atlas.md">Canonical source atlas 보기</a>
-        <a class="btn" href="research/coding-agent-evaluation-framework.md">Evaluation framework 보기</a>
-        <a class="btn" href="assets/evidence/agent-orchestration-comparison.md">Control-plane triad 보기</a>
-        <a class="btn" href="research/coding-agent-underhood-ultraresearch.md">UltraResearch draft 보기</a>
-      </div>
-      <div class="meta-row">
-        <span class="pill">Scope: taxonomy → architecture → implementation → evidence</span>
-        <span class="pill">Method: LazyCodex/OmO <code>$ultraresearch</code> + GJC replay + controller cross-check</span>
-        <span class="pill">Format: static <code>index.html</code></span>
-        <span class="pill">Secrets redacted / not committed</span>
-      </div>
-    </div>
+  <div class="progress" aria-hidden="true"><span id="reading-progress"></span></div>
+
+  <header class="site-header">
+    <a class="brand" href="#top" aria-label="문서 첫 화면으로 이동">
+      <span class="brand-mark">AGENT</span>
+      <span>Architecture Book</span>
+    </a>
+    <nav class="top-nav" aria-label="상단 메뉴">
+      <a href="#contents">목차</a>
+      <a href="#architecture">공통 구조</a>
+      <a href="#control-planes">Control planes</a>
+      <a href="#evidence">근거</a>
+      <a class="button button-small" href="https://github.com/bitboom/ai-agent-workflow-research" target="_blank" rel="noopener">GitHub</a>
+    </nav>
+    <button class="toc-toggle" type="button" aria-controls="site-toc" aria-expanded="false">목차</button>
   </header>
+  <button class="toc-backdrop" type="button" aria-label="목차 닫기" hidden></button>
 
-  <main id="main" class="shell">
-    <section id="summary">
-      <div class="section-head">
-        <span class="eyebrow">Project Purpose</span>
-        <h2>주 목적: coding agent가 어떻게 구성되는지 파악한다</h2>
+  <main id="top">
+    <section class="hero section-shell">
+      <p class="eyebrow">AI CODING AGENT · KOREAN RESEARCH BOOK</p>
+      <h1>AI Coding Agent 구조 해부</h1>
+      <p class="subtitle">코딩 에이전트를 “어느 제품이 좋은가”로 비교하지 않고, agent loop·context·tool·sandbox·verification·state·orchestration이 어디서 어떻게 구현되는지 책처럼 읽을 수 있게 재구성한 문서형 리서치입니다.</p>
+      <div class="hero-actions">
+        <a class="button" href="#contents">목차부터 읽기</a>
+        <a class="button button-ghost" href="appendix/evidence-index.md">Evidence index</a>
       </div>
-      <div class="grid cards-4">
-        <article class="card"><div class="num">01</div><h3>어떤 agent가 있는가</h3><p class="muted">IDE embedded, CLI, repo-local runner, workflow orchestrator, multi-agent, persistent runtime으로 분류한다.</p><span class="tag high">taxonomy</span></article>
-        <article class="card"><div class="num">02</div><h3>공통 동작 원리</h3><p class="muted">model router, context assembly, repo index, planning loop, tool loop, edit strategy, sandbox, verification을 공통 골격으로 본다.</p><span class="tag high">common loop</span></article>
-        <article class="card"><div class="num">03</div><h3>구현체별 특성</h3><p class="muted">Codex, Claude Code, Aider, OpenHands, SWE-agent, Cursor/Cline/Continue, LazyCodex, Gajae, Hermes를 구조 관점으로 해부한다.</p><span class="tag high">deep dive</span></article>
-        <article class="card"><div class="num">04</div><h3>논문·후기·장단점</h3><p class="muted">SWE-bench, SWE-agent, Agentless, OpenHands, ReAct, Reflexion, Toolformer와 실제 caveat를 연결한다.</p><span class="tag medium">evidence</span></article>
-      </div>
-      <div class="callout" style="margin-top:16px">
-        <strong>핵심 관점:</strong> coding agent의 차이는 “LLM이 코드를 쓸 수 있나?”가 아니라 <em>agent loop가 어디에 있고, context를 어떻게 만들며, tool 권한과 verification gate를 어디서 통제하는가</em>에 있다.
-      </div>
-      <div class="callout" style="margin-top:16px">
-        <strong>How to read:</strong> 이 페이지는 synthesis다. Canonical claim은 <a href="assets/evidence/source-level-architecture-atlas.md">source-level architecture atlas</a>와 각 evidence 파일을 우선하고, <a href="research/coding-agent-underhood-ultraresearch.md">UltraResearch 본문</a>은 draft/hypothesis로 읽는다. Runtime claim은 sanitized smoke/version/trace evidence가 있을 때만 승격한다.
+      <div class="meta-grid" aria-label="문서 메타 정보">
+        <div><span>형식</span><strong>한국어 리서치 북</strong></div>
+        <div><span>범위</span><strong>Codex · Aider · SWE-agent · OpenHands · Gajae · Hermes · OmO</strong></div>
+        <div><span>근거 기준</span><strong>source-confirmed / runtime-confirmed / artifact-backed</strong></div>
+        <div><span>최신 상태</span><strong>GJC workflow artifact replay 반영</strong></div>
       </div>
     </section>
 
-    <section id="taxonomy">
-      <div class="section-head"><span class="eyebrow">Taxonomy</span><h2>Loop 위치로 나누는 coding agent 계층</h2></div>
-      <div class="grid cards-3">
-        <article class="card"><h3>IDE embedded</h3><p class="muted">Cursor, Cline/Roo, Continue, Windsurf/Devin Desktop. Editor index와 diff UX가 강하지만 hidden context와 stale index가 위험하다.</p></article>
-        <article class="card"><h3>CLI coding agent</h3><p class="muted">OpenAI Codex CLI, Claude Code, Aider, Goose. Repo-local shell/test 재현성이 강하지만 sandbox와 approval mismatch가 중요하다.</p></article>
-        <article class="card"><h3>Repo-local runner</h3><p class="muted">SWE-agent, OpenHands, Agentless, Gajae-Code. issue → inspect → edit → test → retry 흐름과 benchmark/test oracle이 핵심이다.</p></article>
-        <article class="card"><h3>Workflow orchestrator</h3><p class="muted">LazyCodex/OmO, Gajae, Hermes delegation. planning, approval, evidence, continuation, team lanes를 강제하는 제어층이다.</p></article>
-        <article class="card"><h3>Multi-agent/team</h3><p class="muted">실제 orchestration은 durable queue/state/worktree/tmux/mailbox가 있어야 한다. 단순 role prompt와 구분한다.</p></article>
-        <article class="card"><h3>Persistent runtime</h3><p class="muted">Hermes, Devin-like long-running surfaces. repo session을 넘어 memory, gateway, cron, delegation으로 이어진다.</p></article>
-      </div>
-    </section>
+    <div class="layout section-shell">
+      <aside class="toc" id="site-toc" aria-label="문서 목차">
+        <p class="toc-title">Contents</p>
+        <a href="#summary">핵심 요약</a>
+        <a href="#thesis">이 책의 질문</a>
+        <a href="#contents">책 목차</a>
+        <a href="#taxonomy">Agent 분류</a>
+        <a href="#architecture">공통 구조</a>
+        <a href="#implementations">구현체별 읽기</a>
+        <a href="#control-planes">Control planes</a>
+        <a href="#evaluation">평가 기준</a>
+        <a href="#evidence">근거와 부록</a>
+        <a href="#terms">용어집</a>
+      </aside>
 
-    <section id="architecture">
-      <div class="section-head"><span class="eyebrow">Common Architecture</span><h2>공통 under-the-hood 구성요소</h2></div>
-      <div class="stack">
-        <div class="stack-row"><div class="stack-label">Model client / router</div><div class="stack-body">provider/model 선택, streaming, retries, token budget, task-specific routing. “agent 품질”은 모델만이 아니라 이 router와 prompt/tool layer의 결합이다.</div></div>
-        <div class="stack-row"><div class="stack-label">Prompt / context assembly</div><div class="stack-body">system instructions, repo rules, active files, git diff, search results, memory, failing tests, tool outputs를 압축·선택·정렬한다. 가장 중요한 hidden decision point다.</div></div>
-        <div class="stack-row"><div class="stack-label">Repo index / code graph</div><div class="stack-body">lexical search, semantic index, AST/symbol graph, repo map, LSP/MCP. stale index는 모델 문제가 아니라 context layer 실패다.</div></div>
-        <div class="stack-row"><div class="stack-label">Planning / tool loop</div><div class="stack-body">plan 생성, tool 선택, observation 반영, 계획 수정. ReAct, Reflexion, plan-and-execute 패턴이 제품 워크플로우로 번역되는 지점이다.</div></div>
-        <div class="stack-row"><div class="stack-label">Edit / execution</div><div class="stack-body">patch, diff, search/replace, whole-file rewrite, IDE write API, shell command, browser/MCP tool. over-editing과 patch failure가 여기서 발생한다.</div></div>
-        <div class="stack-row"><div class="stack-label">Sandbox / approval</div><div class="stack-body">filesystem/network/shell 권한, ask/allow/deny, YOLO/auto mode, enterprise policy. safety UX가 아니라 core control plane이다.</div></div>
-        <div class="stack-row"><div class="stack-label">Verification / evidence</div><div class="stack-body">tests, lint, build, benchmark, manual QA, reviewer agent, evidence ledger. “patch 작성”과 “동작 확인”을 분리한다.</div></div>
-        <div class="stack-row"><div class="stack-label">Memory / state</div><div class="stack-body">session transcript, project memory, checkpoints, ledgers, skills, long-term user memory. continuity와 stale state risk가 동시에 생긴다.</div></div>
-      </div>
-    </section>
+      <article class="article">
+        <section id="summary" class="content-section">
+          <p class="eyebrow">Executive Summary</p>
+          <h2>핵심 요약</h2>
+          <div class="summary-grid">
+            <div class="card"><span class="num">01</span><h3>모델보다 control plane을 본다</h3><p>coding agent 품질은 LLM 이름만으로 결정되지 않는다. context를 어떻게 만들고, 어떤 tool을 허용하며, 실패를 어떻게 검증·기록하는지가 핵심이다.</p></div>
+            <div class="card"><span class="num">02</span><h3>Agent loop의 위치가 제품 성격을 가른다</h3><p>IDE extension, CLI, benchmark runner, persistent coordinator는 같은 “코딩 에이전트”라도 loop와 state의 위치가 다르다.</p></div>
+            <div class="card"><span class="num">03</span><h3>Context assembly가 숨은 병목이다</h3><p>repo map, active file, search result, memory, failing test log를 고르는 방식이 patch 품질과 비용을 좌우한다.</p></div>
+            <div class="card"><span class="num">04</span><h3>Verification은 결과와 과정 모두를 봐야 한다</h3><p>테스트 통과만으로 충분하지 않다. agent가 어떤 파일을 읽고 어떤 tool을 썼는지 trajectory까지 기록해야 한다.</p></div>
+            <div class="card"><span class="num">05</span><h3>Gajae/Hermes/OmO는 control-plane 연구 대상이다</h3><p>Gajae는 `.gjc`, Hermes는 persistent runtime, OmO는 Codex plugin/harness layer로 서로 다른 orchestration 실험을 보여준다.</p></div>
+            <div class="card"><span class="num">06</span><h3>UltraResearch는 초안, controller evidence가 canonical이다</h3><p>agent 산출물은 가설 생성기로 쓰고, public claim은 source path·runtime trace·artifact·controller cross-check만 승격한다.</p></div>
+          </div>
+        </section>
 
-    <section id="control-map">
-      <div class="section-head"><span class="eyebrow">Control Surface Map</span><h2>구현체를 기능표가 아니라 control layer로 비교</h2></div>
-      <div class="matrix-wrap">
-        <table>
-          <thead><tr><th>구현체 / 계열</th><th>Loop 위치</th><th>Context 핵심</th><th>Edit / 실행</th><th>권한 / sandbox</th><th>State / evidence</th><th>Evidence status</th></tr></thead>
-          <tbody>
-            <tr><td>OpenAI Codex CLI</td><td>local CLI/app runtime</td><td>repo files, instructions, tool outputs</td><td>patch/file/shell tools</td><td>sandbox + approval profile</td><td>session/tool trace, plugin surface</td><td><span class="tag high">source-confirmed</span></td></tr>
-            <tr><td>Claude Code</td><td>terminal CLI</td><td>repo + instructions; internals partly closed</td><td>terminal/file/tool use</td><td>documented permissions</td><td>session/config docs</td><td><span class="tag medium">docs-confirmed</span></td></tr>
-            <tr><td>Aider</td><td>git repo CLI chat</td><td>explicit files + RepoMap</td><td>model-specific edit formats, patches</td><td>git/file/test controls</td><td>git commits, lint/test loops</td><td><span class="tag high">source-confirmed</span></td></tr>
-            <tr><td>OpenHands</td><td>app/runtime platform</td><td>event stream, runtime state, shell/browser/code</td><td>actions/observations in sandbox</td><td>local/docker/remote runtime</td><td>conversation/events/evals</td><td><span class="tag high">package/source-confirmed</span></td></tr>
-            <tr><td>SWE-agent / Agentless</td><td>repo-local benchmark runner / pipeline</td><td>issue text, localization, tests</td><td>tool-mediated edits / generated patches</td><td>benchmark/container env</td><td>trajectory, test result, score</td><td><span class="tag high">source/paper-confirmed</span></td></tr>
-            <tr><td>Cursor / Cline / Continue</td><td>IDE or extension host</td><td>active editor + index + rules/memory</td><td>editor diff/checkpoint/shell</td><td>modal approval, policy, auto modes</td><td>checkpoints, memory bank, IDE state</td><td><span class="tag medium">mixed source/docs</span></td></tr>
-            <tr><td>LazyCodex / OmO</td><td>Codex plugin/harness layer</td><td>Codex context + injected hooks/skills/rules</td><td>Codex tools under ultrawork discipline</td><td>Codex policy + OmO hooks</td><td><code>.omo</code>, skills, evidence loops</td><td><span class="tag high">manifest-confirmed + artifact-backed; MCP runtime partly unverified</span></td></tr>
-            <tr><td>Gajae-Code</td><td>independent runner/control surface</td><td>interview → plan → goal state</td><td>tmux/worktree/team execution</td><td>external runner boundaries</td><td><code>.gjc</code> specs/plans/ledgers</td><td><span class="tag high">source-confirmed + basic runtime-confirmed + workflow artifact-backed; live team/recovery pending</span></td></tr>
-            <tr><td>Hermes Agent</td><td>persistent coordinator/runtime</td><td>memory, skills, messaging identity, tools</td><td>delegates to tools/runtimes</td><td>toolsets, gateways, backend controls</td><td>memory, skills, cron, session search</td><td><span class="tag high">runtime-confirmed 0.12.0 + source-confirmed 0.17.0; parity unresolved</span></td></tr>
-          </tbody>
-        </table>
-      </div>
-    </section>
+        <section id="thesis" class="content-section">
+          <p class="eyebrow">Main Question</p>
+          <h2>이 책의 질문</h2>
+          <p>이 프로젝트는 “Codex가 더 나은가, Aider가 더 나은가”를 묻지 않습니다. 대신 <strong>coding agent라는 시스템이 under the hood에서 어떤 층으로 구성되는지</strong>를 묻습니다.</p>
+          <blockquote>좋은 coding agent 분석은 기능표가 아니라 실행 루프, 컨텍스트 조립, tool boundary, verification gate, durable state를 추적하는 일이다.</blockquote>
+          <p>그래서 첫 화면은 링크 모음이 아니라 독자가 순서대로 읽을 수 있는 <strong>목차형 입구</strong>로 바꿨습니다. 상세 근거는 부록으로 남기되, 본문은 책처럼 한 장씩 이어집니다.</p>
+          <div class="takeaway"><span>읽는 법</span><p>먼저 1–3장을 읽고 공통 구조를 잡은 뒤, 4–6장에서 구현체와 control plane을 비교하고, 마지막으로 evidence appendix에서 claim을 검증합니다.</p></div>
+        </section>
 
-    <section id="implementations">
-      <div class="section-head"><span class="eyebrow">Implementation Deep Dives</span><h2>이번 UltraResearch의 주요 판정</h2></div>
-      <div class="impl-grid">
-        <article class="card"><h3>Codex / Claude Code</h3><ul class="mini-list"><li>CLI/runtime agent의 핵심은 sandbox, approval, project instructions, tool execution이다.</li><li>closed/internal context ranking은 문서화된 control surface와 분리해 낮은 confidence로 둔다.</li></ul></article>
-        <article class="card"><h3>Aider</h3><ul class="mini-list"><li>RepoMap과 edit format이 공개되어 context compression과 patch strategy를 연구하기 좋다.</li><li>lint/test integration은 verification gate 연구에 유용하다.</li></ul></article>
-        <article class="card"><h3>OpenHands / SWE-agent / Agentless</h3><ul class="mini-list"><li>runtime, sandbox, action/observation, benchmark harness가 agent 품질에 직접 관여한다.</li><li>Agentless는 모든 작업에 full autonomous loop가 필요한 것은 아님을 보여준다.</li></ul></article>
-        <article class="card"><h3>IDE-style agents</h3><ul class="mini-list"><li>IDE index와 editor diff UX가 강점이다.</li><li>hidden context selection, stale index, approval fatigue가 주요 실패 원인이다.</li></ul></article>
-        <article class="card"><h3>LazyCodex / OmO</h3><ul class="mini-list"><li>Codex 위에 lifecycle hooks, skills, MCP 선언, <code>.omo</code> artifact schema를 얹는 plugin/harness layer다.</li><li><a href="research/deep-dive-lazycodex-omo.md">deep dive</a>와 <a href="assets/evidence/lazycodex-runtime-callable-surface.md">runtime-callable matrix</a>에서 manifest evidence와 runtime replay를 분리했다.</li></ul></article>
-        <article class="card"><h3>Gajae-Code / Hermes</h3><ul class="mini-list"><li>Gajae는 <code>.gjc</code> state와 four workflow skills 중심의 TypeScript/Bun control plane이며 local <code>gjc</code> basic smoke와 controlled workflow artifact replay가 확인됐다.</li><li>남은 Gajae caveat는 live non-dry-run team, recovery/resume, Hermes bridge runtime이다.</li><li>Hermes는 local runtime <code>0.12.0</code>과 source clone <code>0.17.0</code>이 갈라진 persistent coordinator다.</li><li><a href="research/deep-dive-gajae-code.md">Gajae</a> / <a href="research/deep-dive-hermes-agent.md">Hermes</a> 문서에서 caveat를 분리했다.</li></ul></article>
-      </div>
-    </section>
+        <section id="contents" class="content-section">
+          <p class="eyebrow">Book Table of Contents</p>
+          <h2>책처럼 읽는 목차</h2>
+          <div class="chapter-grid">
+            <a class="chapter-card" href="chapters/01-research-question.md"><span>Chapter 01</span><h3>연구 질문과 판정 기준</h3><p>제품 비교가 아니라 구조 분석으로 읽는 기준을 세운다.</p></a>
+            <a class="chapter-card" href="chapters/02-agent-taxonomy.md"><span>Chapter 02</span><h3>Agent 분류</h3><p>IDE, CLI, runner, orchestrator, persistent runtime으로 나눈다.</p></a>
+            <a class="chapter-card" href="chapters/03-common-architecture.md"><span>Chapter 03</span><h3>공통 아키텍처</h3><p>model router부터 state/evidence까지 공통 골격을 정리한다.</p></a>
+            <a class="chapter-card" href="chapters/04-implementation-atlas.md"><span>Chapter 04</span><h3>구현체별 읽기 지도</h3><p>Codex, Aider, OpenHands, SWE-agent, IDE 계열을 source anchor로 읽는다.</p></a>
+            <a class="chapter-card" href="chapters/05-control-plane-triad.md"><span>Chapter 05</span><h3>Gajae · Hermes · OmO</h3><p>세 control plane을 state root, runtime proof, failure mode로 비교한다.</p></a>
+            <a class="chapter-card" href="chapters/06-evaluation-framework.md"><span>Chapter 06</span><h3>평가 프레임워크</h3><p>결과물·trajectory·재현성·정직성을 함께 평가한다.</p></a>
+            <a class="chapter-card" href="chapters/07-caveats-and-next.md"><span>Chapter 07</span><h3>남은 질문과 다음 실험</h3><p>live team, bridge, recovery, benchmark pilot의 순서를 정리한다.</p></a>
+            <a class="chapter-card appendix" href="appendix/evidence-index.md"><span>Appendix</span><h3>Evidence index</h3><p>source atlas, runtime smoke, workflow replay, draft를 어디서 확인할지 안내한다.</p></a>
+          </div>
+        </section>
 
-    <section id="papers">
-      <div class="section-head"><span class="eyebrow">Papers & Failure Patterns</span><h2>논문과 실제 caveat를 architecture 원인으로 연결</h2></div>
-      <div class="grid cards-3">
-        <article class="card"><h3>SWE-bench 계열</h3><p class="muted">repo-level patch evaluation을 가능하게 하지만 benchmark score를 제품 품질로 직접 읽으면 안 된다. incomplete tests와 semantic correctness gap이 남는다.</p></article>
-        <article class="card"><h3>ReAct / Reflexion / Toolformer</h3><p class="muted">reasoning-action loop, self-critique, tool use, planning 패턴의 이론적 기반이다. 특정 제품 구현의 정확성을 자동 보증하지는 않는다.</p></article>
-        <article class="card"><h3>실패 패턴</h3><p class="muted">context rot, over-editing, flaky tests, sandbox mismatch, stale index, hidden state drift, approval fatigue, benchmark overfitting을 architecture cause로 추적한다.</p></article>
-      </div>
-    </section>
+        <section id="taxonomy" class="content-section">
+          <p class="eyebrow">Taxonomy</p>
+          <h2>Agent는 loop 위치로 나눈다</h2>
+          <p>“AI coding agent”라는 이름은 너무 넓습니다. 분석을 위해서는 agent loop가 어디서 돌고 state가 어디에 남는지부터 나눠야 합니다.</p>
+          <div class="context-grid">
+            <div><h3>IDE embedded</h3><p>Cursor, Cline, Continue, Roo. editor index와 diff UX가 강하지만 hidden context와 stale index가 위험하다.</p></div>
+            <div><h3>CLI coding agent</h3><p>OpenAI Codex CLI, Aider, Goose, Claude Code. local shell/test 재현성이 강하지만 sandbox·approval mismatch를 봐야 한다.</p></div>
+            <div><h3>Repo-local runner</h3><p>SWE-agent, OpenHands, Agentless. issue → inspect → edit → test → retry 흐름과 benchmark trace가 핵심이다.</p></div>
+            <div><h3>Workflow orchestrator</h3><p>Gajae-Code, LazyCodex/OmO. planning, review, state, artifact, team lane을 강제하는 control layer다.</p></div>
+            <div><h3>Persistent runtime</h3><p>Hermes처럼 session을 넘어 memory, cron, delegation, gateway, messaging identity로 이어지는 runtime이다.</p></div>
+            <div><h3>Team / multi-agent</h3><p>진짜 multi-agent는 role prompt가 아니라 durable queue, state root, worktree/tmux/mailbox, recovery path가 있어야 한다.</p></div>
+          </div>
+        </section>
 
-    <section id="evidence">
-      <div class="section-head"><span class="eyebrow">Evidence & Artifacts</span><h2>리서치 산출물과 검증 파일</h2></div>
-      <div class="evidence-list">
-        <a href="research/coding-agent-underhood-ultraresearch.md"><span>UltraResearch draft/hypothesis synthesis</span><code>draft</code></a>
-        <a href="research/coding-agent-taxonomy.md"><span>Coding Agent Taxonomy</span><code>taxonomy</code></a>
-        <a href="research/coding-agent-source-map.md"><span>Source map: official docs/source/papers/local evidence</span><code>source map</code></a>
-        <a href="assets/evidence/source-level-architecture-atlas.md"><span>Canonical source-level architecture atlas: SHA-pinned loop/context/edit/sandbox maps</span><code>canonical</code></a>
-        <a href="research/coding-agent-evaluation-framework.md"><span>벤치마크/평가 프레임워크: 과제군, 평가표, 기록 스키마</span><code>framework</code></a>
-        <a href="research/coding-agent-open-questions.md"><span>Open questions and next research steps</span><code>next</code></a>
-        <a href="research/deep-dive-gajae-code.md"><span>Gajae-Code deep dive: source anchors, .gjc state, basic runtime smoke</span><code>deep dive</code></a>
-        <a href="research/deep-dive-hermes-agent.md"><span>Hermes Agent deep dive: version drift, runtime/coordinator map</span><code>deep dive</code></a>
-        <a href="research/deep-dive-lazycodex-omo.md"><span>LazyCodex/OmO deep dive: manifest vs runtime-callable surface</span><code>deep dive</code></a>
-        <a href="assets/evidence/gajae-code-runtime-smoke.md"><span>Gajae-Code runtime smoke status</span><code>basic runtime-confirmed</code></a>
-        <a href="assets/evidence/gajae-code-workflow-replay.md"><span>Gajae-Code workflow replay: deep-interview, ralplan, ultragoal, team dry-run</span><code>workflow artifact-backed</code></a>
-        <a href="assets/evidence/hermes-local-version-drift.md"><span>Hermes local/source version drift evidence</span><code>version drift</code></a>
-        <a href="assets/evidence/lazycodex-runtime-callable-surface.md"><span>LazyCodex/OmO runtime-callable surface matrix</span><code>runtime matrix</code></a>
-        <a href="assets/evidence/agent-orchestration-comparison.md"><span>Control-plane orchestration comparison: Gajae vs Hermes vs OmO</span><code>comparison</code></a>
-        <a href="assets/evidence/gjc-documentation-review.md"><span>GJC documentation review pass: stale/status fixes accepted by controller</span><code>review</code></a>
-        <a href="assets/evidence/coding-agent-underhood-crosscheck.md"><span>Controller cross-check notes</span><code>evidence</code></a>
-        <a href="assets/evidence/reconciled-facts.md"><span>Earlier Gajae/Hermes/LazyCodex/Codex reconciliation</span><code>evidence</code></a>
-      </div>
-    </section>
+        <section id="architecture" class="content-section">
+          <p class="eyebrow">Common Architecture</p>
+          <h2>공통 under-the-hood 구조</h2>
+          <p>각 제품의 UI는 다르지만 반복해서 등장하는 구조는 비슷합니다. 아래 여덟 축을 보면 agent claim을 과장 없이 읽을 수 있습니다.</p>
+          <div class="steps detailed">
+            <div><span>1</span><h3>Model client / router</h3><p>provider, streaming, retry, token budget, task routing을 담당한다.</p></div>
+            <div><span>2</span><h3>Prompt / context assembly</h3><p>system rule, repo file, memory, tool output, failing test log를 선택·압축한다.</p></div>
+            <div><span>3</span><h3>Repo index / code graph</h3><p>lexical search, AST, LSP, vector index, repo map이 여기에 속한다.</p></div>
+            <div><span>4</span><h3>Planning / tool loop</h3><p>plan 생성, action 선택, observation 반영, 반복 중단 조건을 다룬다.</p></div>
+            <div><span>5</span><h3>Edit / execution</h3><p>patch, search/replace, whole-file rewrite, shell command, browser/MCP tool을 실행한다.</p></div>
+            <div><span>6</span><h3>Sandbox / approval</h3><p>filesystem, network, shell, human approval, enterprise policy를 통제한다.</p></div>
+            <div><span>7</span><h3>Verification / evidence</h3><p>test, lint, build, benchmark, reviewer agent, evidence ledger를 남긴다.</p></div>
+            <div><span>8</span><h3>Memory / durable state</h3><p>session, checkpoint, skills, long-term memory, workflow artifact를 관리한다.</p></div>
+          </div>
+          <div class="takeaway"><span>이 장의 결론</span><p>agent를 비교할 때는 “무슨 모델을 쓰는가”보다 “이 여덟 층이 공개·검증·재현 가능한가”를 먼저 본다.</p></div>
+        </section>
 
-    <section id="next">
-      <div class="section-head"><span class="eyebrow">Next Steps</span><h2>source-level atlas 이후: triad deep dive와 runtime proof</h2></div>
-      <div class="callout">
-        <p><strong>우선순위 변경:</strong> SHA-pinned repo/package atlas 다음에는 작은 동일 저장소 실행 기록 비교가 아니라, 먼저 <a href="research/coding-agent-evaluation-framework.md">벤치마크/평가 프레임워크</a>와 <a href="assets/evidence/agent-orchestration-comparison.md">Gajae/Hermes/OmO control-plane triad</a>를 기준으로 프로젝트별 source-level deep dive를 만든다. Gajae는 controlled `.gjc` artifact replay까지 완료됐으므로 다음 실행 기록 파일럿은 live team/recovery/Hermes bridge와 benchmark trace schema다.</p>
-        <p class="muted">UltraResearch는 draft/hypothesis로 두고, canonical evidence는 source paths, official docs, public issues, sanitized runtime traces, controller cross-check로 제한한다.</p>
-      </div>
-    </section>
+        <section id="implementations" class="content-section">
+          <p class="eyebrow">Implementation Atlas</p>
+          <h2>구현체별 읽기 지도</h2>
+          <p>상세 source path는 부록의 atlas에 두고, 본문은 읽는 방향만 남겼습니다.</p>
+          <div class="compare wide">
+            <div class="panel"><h3>OpenAI Codex / Aider / Goose</h3><p>CLI agent의 핵심은 local tool loop, patch 전략, sandbox/approval, git/test feedback이다. Aider의 RepoMap처럼 context compression이 명시된 구현은 연구 가치가 높다.</p></div>
+            <div class="panel"><h3>SWE-agent / OpenHands / Agentless</h3><p>benchmark runner와 runtime platform 계열은 trajectory, container/runtime, test oracle을 함께 봐야 한다. Agentless는 “항상 autonomous loop가 필요한가”라는 반례도 제공한다.</p></div>
+          </div>
+          <div class="compare wide">
+            <div class="panel"><h3>Cline / Roo / Continue</h3><p>IDE 계열은 editor state, index freshness, approval UX, remote workspace routing이 핵심이다. 좋은 UX가 hidden context failure를 가릴 수 있다.</p></div>
+            <div class="panel success"><h3>Gajae-Code / Hermes / LazyCodex·OmO</h3><p>이 프로젝트의 현재 deep dive 축이다. Gajae는 `.gjc` artifact replay까지 확인했고, Hermes는 runtime/source drift, OmO는 manifest와 runtime-callable surface를 분리한다.</p></div>
+          </div>
+          <div class="callout"><strong>대표 evidence:</strong> <a href="assets/evidence/source-level-architecture-atlas.md">source-level architecture atlas</a>에서 SHA-pinned source map을 확인할 수 있다.</div>
+        </section>
+
+        <section id="control-planes" class="content-section">
+          <p class="eyebrow">Control Plane Triad</p>
+          <h2>Gajae · Hermes · OmO는 따로 읽는다</h2>
+          <p>세 시스템은 coding agent 제품이라기보다 agent workflow를 통제하는 control plane입니다. 따라서 기능표보다 state root와 runtime proof를 봐야 합니다.</p>
+          <div class="compare triad">
+            <div class="panel success"><h3>Gajae-Code</h3><p><code>.gjc/_session-*</code> state, deep-interview → ralplan → ultragoal → team workflow. 현재 `gjc/0.7.3` smoke와 controlled workflow artifact replay가 확인됐다.</p></div>
+            <div class="panel"><h3>Hermes Agent</h3><p><code>~/.hermes/</code> 기반 persistent runtime. local runtime `0.12.0`과 source clone `0.17.0` drift를 분리해 읽어야 한다.</p></div>
+            <div class="panel warning"><h3>LazyCodex / OmO</h3><p>Codex 위 plugin/harness layer. manifest-declared hooks/MCP와 실제 runtime-callable `$...` workflow proof를 분리한다.</p></div>
+          </div>
+          <div class="takeaway"><span>현재 판정</span><p>Gajae는 basic runtime-confirmed + workflow artifact-backed. Hermes와 OmO는 각각 version drift와 runtime-callable surface 검증이 다음 핵심이다.</p></div>
+        </section>
+
+        <section id="evaluation" class="content-section">
+          <p class="eyebrow">Evaluation</p>
+          <h2>데모가 아니라 평가 기준을 세운다</h2>
+          <p>작은 toy task 하나를 여러 agent에 던지는 방식은 재미는 있지만, under-the-hood 연구에는 약합니다. 먼저 trace schema와 rubric이 있어야 합니다.</p>
+          <div class="context-grid">
+            <div><h3>Task success</h3><p>요구사항이 실제로 충족됐는가. 단순 빌드 성공과 semantic correctness를 분리한다.</p></div>
+            <div><h3>Context localization</h3><p>agent가 필요한 파일·테스트·문서를 찾아 읽었는가.</p></div>
+            <div><h3>Tool-use trajectory</h3><p>위험한 shell, 불필요한 rewrite, 반복 loop, approval bypass가 없었는가.</p></div>
+            <div><h3>Verification honesty</h3><p>실제로 테스트했는가, 실패를 숨기지 않았는가, evidence를 재현 가능하게 남겼는가.</p></div>
+          </div>
+          <div class="callout"><strong>다음 실험 순서:</strong> live team/recovery/Hermes bridge trace → benchmark task template → 5–10개 curated task pilot.</div>
+        </section>
+
+        <section id="evidence" class="content-section">
+          <p class="eyebrow">Evidence & Appendix</p>
+          <h2>근거는 부록에서 확인한다</h2>
+          <p>본문은 책처럼 짧게 유지하고, 세부 source path와 runtime capture는 appendix에 모았습니다.</p>
+          <div class="chapter-grid compact">
+            <a class="chapter-card" href="appendix/evidence-index.md"><span>Appendix</span><h3>Evidence index</h3><p>어떤 claim을 어느 파일에서 확인할지 안내합니다.</p></a>
+            <a class="chapter-card" href="assets/evidence/gajae-code-workflow-replay.md"><span>Runtime</span><h3>GJC workflow replay</h3><p>deep-interview, ralplan, ultragoal, team dry-run artifact proof.</p></a>
+            <a class="chapter-card" href="assets/evidence/source-level-architecture-atlas.md"><span>Source</span><h3>Source atlas</h3><p>각 agent의 loop/context/edit/sandbox/source path map.</p></a>
+            <a class="chapter-card" href="research/coding-agent-evaluation-framework.md"><span>Framework</span><h3>Evaluation framework</h3><p>benchmark보다 먼저 고정해야 할 rubric과 trace schema.</p></a>
+          </div>
+        </section>
+
+        <section id="terms" class="content-section">
+          <p class="eyebrow">Glossary</p>
+          <h2>이 문서의 판정 라벨</h2>
+          <dl class="glossary">
+            <div><dt>source-confirmed <span>소스 확인</span></dt><dd>repo clone 또는 package source에서 직접 확인한 claim.</dd></div>
+            <div><dt>runtime-confirmed <span>실행 확인</span></dt><dd>현재 환경에서 command가 exit 0로 동작하고 결과를 반환한 claim.</dd></div>
+            <div><dt>artifact-backed <span>산출물 기반</span></dt><dd>실행 후 `.gjc`, `.omo`, trace, ledger 같은 durable artifact가 남은 claim.</dd></div>
+            <div><dt>manifest-confirmed <span>선언 확인</span></dt><dd>plugin manifest나 docs에 선언되어 있으나 실제 callability는 별도 검증이 필요한 claim.</dd></div>
+            <div><dt>unverified <span>미검증</span></dt><dd>source나 runtime proof 없이 추정 또는 agent draft에만 있는 claim.</dd></div>
+          </dl>
+        </section>
+
+        <footer class="article-footer">
+          <p>이 사이트는 Vibe SDLC KO(`bitboom/vibe-sdlc-ko`)의 문서형 읽기 가이드 UX를 기준으로 재구성했습니다. 상세 근거는 <a href="appendix/evidence-index.md">Evidence index</a>와 GitHub repo에서 확인하세요.</p>
+        </footer>
+      </article>
+    </div>
   </main>
 
-  <footer>
-    <div class="shell">AI Coding Agent Under-the-Hood Research · Static GitHub Pages · no framework · generated with LazyCodex/OmO UltraResearch and controller cross-check.</div>
-  </footer>
-
-  <script>
-    const root = document.documentElement;
-    const button = document.getElementById('themeToggle');
-    const saved = localStorage.getItem('theme');
-    if (saved === 'light' || saved === 'dark') root.dataset.theme = saved;
-    const sync = () => { button.textContent = root.dataset.theme === 'light' ? 'Dark' : 'Light'; };
-    button.addEventListener('click', () => {
-      root.dataset.theme = root.dataset.theme === 'light' ? 'dark' : 'light';
-      localStorage.setItem('theme', root.dataset.theme);
-      sync();
-    });
-    sync();
-  </script>
+  <script src="script.js"></script>
 </body>
 </html>

@@ -54,7 +54,7 @@ LazyCodex/OmO, Gajae-Code, Hermes delegation, and some OpenHands/Devin orchestra
 
 Local OmO evidence shows a Codex plugin/harness with lifecycle hooks, skills, MCP declarations, LSP/codegraph/git-bash helpers, ultrawork/ulw-loop/start-work/teammode state paths, and evidence-driven workflow instructions. This is not a standalone coding agent runtime in this local setup; it rides on Codex. [confidence: high for local observation]
 
-Gajae-Code local notes indicate a runner/control surface with interview, plan, execution, tmux/worktree/team and evidence orientation, but local `gjc` execution was not verified in this repo. [confidence: medium]
+Gajae-Code local notes indicate a runner/control surface with interview, plan, execution, tmux/worktree/team and evidence orientation. A later controller pass basic-confirmed local `gjc/0.7.3` version/help/smoke/print mode, but full workflow/session replay remains unverified. [confidence: medium/high for source and basic runtime; medium for workflow behavior]
 
 Hermes local notes frame it as a persistent coordinator/runtime with gateway, memory, skills, cron, delegation, and MCP. It is better understood as a long-running coordinator that can call coding surfaces, not just a repo-local code editor. [confidence: high for local observation]
 
@@ -377,7 +377,7 @@ High confidence:
 
 Medium confidence:
 
-- Gajae-Code architecture claims, because public/local evidence exists but local `gjc` execution was not verified.
+- Gajae-Code architecture claims are medium/high for source and package evidence; later controller evidence basic-confirms local `gjc` CLI smoke, while full workflow/session replay remains pending.
 - Windsurf-specific claims, because current docs in this pass route through Devin Desktop.
 - Product-specific review pain prevalence, because public review corpus was not exhaustively collected.
 
@@ -386,26 +386,20 @@ Low confidence:
 - Any closed-source internal context ranking, model routing, or indexing implementation not exposed in first-party docs/source.
 - Marketing claims about "autonomy" or "understands your codebase" without source, issue, or reproducible evidence.
 
-## 8. GitHub Pages 리포트로 반영해야 할 새 목차
+## 8. GitHub Pages IA Status
 
-현재 `index.html`은 네 제품 비교 중심이다. 새 research scope를 반영하려면 다음 IA가 더 적합하다.
+`index.html` has moved from the earlier product-comparison framing to the intended under-the-hood architecture framing: project purpose, taxonomy, common architecture, control-surface map, implementation deep dives, evidence hierarchy, and next probes.
 
-1. Executive Summary: coding agent는 model이 아니라 control layer다
-2. Taxonomy: IDE, CLI, repo-local runner, orchestrator, multi-agent, persistent runtime
-3. Common Architecture: model router부터 evidence ledger까지
-4. Control Surface Map: loop location, context, permissions, editing, verification
-5. Implementation Deep Dives
-   - Codex CLI / Codex ecosystem
-   - Claude Code
-   - Aider
-   - OpenHands
-   - SWE-agent / Agentless
-   - Cursor / Continue / Cline / Devin/Windsurf
-   - LazyCodex/OmO
-   - Gajae-Code
-   - Hermes Agent
-6. Benchmarks And Papers: SWE-bench, Verified, SWE-agent, Agentless, OpenHands, ReAct, Reflexion, Toolformer
-7. Failure Patterns: architecture cause, symptom, mitigation
-8. Evidence Map: official docs/source, papers, local observations, review signals
-9. Open Questions And Next Experiments
-10. Appendix: source list, local evidence policy, redaction policy
+Current reading order:
+
+1. Use the landing page as synthesis, not as the canonical proof source.
+2. Treat `assets/evidence/source-level-architecture-atlas.md` as the canonical source-backed atlas for loop/context/edit/sandbox/state claims.
+3. Use `research/coding-agent-evaluation-framework.md` to interpret future runtime traces and benchmark pilots.
+4. Use the Gajae/Hermes/LazyCodex deep dives and runtime evidence files for per-system caveats.
+5. Treat this UltraResearch report as draft/hypothesis unless a claim is cross-checked by source paths, official docs, public issues, or sanitized runtime evidence.
+
+Remaining IA gaps:
+
+1. Split the long atlas into per-agent source-level pages after the evaluation framework and trace schema stabilize.
+2. Add more runtime traces for Gajae workflow sessions, Hermes gateway/cron/delegation, and non-`$ultraresearch` OmO workflows.
+3. Keep confidence labels two-axis: evidence status first, confidence/caveat second.

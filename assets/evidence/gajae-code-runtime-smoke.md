@@ -2,25 +2,38 @@
 
 ## Summary
 
-Current result: **runtime unverified**.
+Current result: **basic runtime-confirmed; full workflow replay pending**.
 
-The LazyCodex/OmO UltraResearch controller attempted a local smoke feasibility check for Gajae-Code, but this environment does not expose the required runtime commands on PATH.
+A local Bun/GJC installation was added after the earlier UltraResearch pass. The initial historical state was `bun: not found` / `gjc: not found`; that is now superseded by the sanitized smoke capture below.
+
+## Sanitized capture
 
 ```text
-bun: not found
-gjc: not found
+capture time: 2026-06-27T09:49:09Z
+bun --version -> 1.3.14
+@gajae-code/coding-agent -> 0.7.3, bin.gjc -> src/cli.ts
+gajae-code -> 0.7.3, bin.gjc -> bin/gjc.js
+gjc --version -> gjc/0.7.3
+gjc --help -> exit 0, command surface rendered
+gjc --smoke-test -> smoke-test: ok
+gjc -p --model openai-codex/gpt-5.5 --thinking low --no-session --no-title --no-lsp ... -> GJC_PRINT_SMOKE_OK
 ```
+
+The global `gjc` command resolves through Bun to the scoped `@gajae-code/coding-agent` CLI entry. The public wrapper package `gajae-code` is also installed and records the same package version and repository metadata.
 
 ## What this proves
 
-- The current environment cannot prove `gjc` runtime behavior.
-- Source-level feasibility remains strong because the source checkout includes CLI, package manifests, and smoke-test wiring.
+- The local machine can execute `gjc` after a Bun/global package install.
+- The installed CLI reports `gjc/0.7.3` and exposes a help surface.
+- The built-in smoke test exits successfully.
+- Non-interactive model-backed print mode can return a controlled response.
 
 ## What this does not prove
 
-- It does not prove that Gajae-Code is broken.
-- It does not prove that npm packages are unavailable.
-- It does not prove that a Bun-enabled environment cannot run it.
+- It does not prove that `deep-interview`, `ralplan`, `ultragoal`, or `team` produce correct project artifacts in a real repository.
+- It does not prove `.gjc/_session-*` recovery, audit, workflow-gate, or cleanup behavior.
+- It does not resolve package/repo owner drift between npm metadata and inspected GitHub repo evidence.
+- It does not prove Hermes coordinator bridge behavior.
 
 ## Source-level smoke anchors
 
@@ -31,18 +44,14 @@ gjc: not found
 
 ## Required next evidence
 
-Run in a Bun-enabled or installed-package environment:
+Run in an isolated temp repo and publish only sanitized outputs:
 
 ```bash
-command -v bun
-command -v gjc || true
-bun packages/coding-agent/src/cli.ts --version
-bun packages/coding-agent/src/cli.ts --help
-bun packages/coding-agent/src/cli.ts --smoke-test
-# if installed globally or via npx/bunx:
-gjc --version
-gjc --help
-gjc --smoke-test
+gjc ralplan --help
+gjc ultragoal --help
+gjc team --help
+# then one read-only or minimal mutation-controlled workflow replay
+gjc -p --no-session --no-title --no-lsp "Summarize this repo purpose"
 ```
 
-Record stdout/stderr, exit codes, package versions, and project SHA. Publish only sanitized outputs.
+Record stdout/stderr, exit codes, package versions, generated `.gjc` paths, and cleanup status. Do not publish raw provider config, API keys, local private paths, or message logs.

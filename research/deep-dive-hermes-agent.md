@@ -52,7 +52,7 @@ Not confirmed yet:
 
 ## Next probes
 
-1. Build `assets/evidence/hermes-local-version-drift.md` into a version matrix and keep it separate from source architecture.
+1. Maintain `assets/evidence/hermes-local-version-drift.md` as the canonical version-boundary matrix and extend it only with sanitized runtime traces.
 2. Run isolated read-only probes for installed `0.12.0`:
    - `hermes --version`
    - `hermes --help`

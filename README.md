@@ -3,7 +3,8 @@
 GitHub Pages용 정적 HTML 리서치 리포트입니다.
 
 - Site: `index.html`
-- Main report: `research/coding-agent-underhood-ultraresearch.md`
+- Canonical source atlas: `assets/evidence/source-level-architecture-atlas.md`
+- Draft/hypothesis synthesis: `research/coding-agent-underhood-ultraresearch.md`
 - Taxonomy: `research/coding-agent-taxonomy.md`
 - Source map: `research/coding-agent-source-map.md`
 - Evaluation framework: `research/coding-agent-evaluation-framework.md`
@@ -11,7 +12,8 @@ GitHub Pages용 정적 HTML 리서치 리포트입니다.
 - Gajae-Code deep dive: `research/deep-dive-gajae-code.md`
 - Hermes Agent deep dive: `research/deep-dive-hermes-agent.md`
 - LazyCodex/OmO deep dive: `research/deep-dive-lazycodex-omo.md`
-- Agent orchestration comparison: `assets/evidence/agent-orchestration-comparison.md`
+- Control-plane orchestration comparison: `assets/evidence/agent-orchestration-comparison.md`
+- GJC documentation review pass: `assets/evidence/gjc-documentation-review.md`
 - Evidence: `assets/evidence/*.md`
 - No framework / no build step required
 
@@ -33,9 +35,10 @@ GitHub Pages용 정적 HTML 리서치 리포트입니다.
 ## Method
 
 - LazyCodex/OmO `$ultraresearch`로 deep research corpus 생성
+- Gajae-Code `gjc`로 전체 공개 문서 리뷰를 실행하고 controller가 stale/status issue를 반영
 - Controller가 official docs/source, local evidence, paper IDs, source clones를 교차검증
 - Benchmark/evaluation framework를 먼저 세워 runtime trace pilot을 해석 가능한 evidence로 제한
-- claim별 confidence를 high/medium/low로 분리
+- claim별 evidence status(source-confirmed/runtime-confirmed/artifact-backed/unverified)와 confidence를 분리
 - API key, token, credential, connection string은 커밋하지 않음
 
 ## GitHub Pages

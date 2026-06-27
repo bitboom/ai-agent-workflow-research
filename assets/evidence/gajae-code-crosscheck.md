@@ -4,7 +4,7 @@
 
 ## 로컬/공개 검증 사실
 
-- 로컬 PATH에서는 `gjc` command가 확인되지 않았다. 단, Hermes MCP 도구 표면에는 기존 `gjc_coordinator_*` 세션 도구가 노출되어 있었고, 과거 Atock용 GJC coordinator session이 존재했다.
+- 2026-06-26 기준 로컬 PATH에서는 `gjc` command가 확인되지 않았다. 2026-06-27 후속 pass에서 Bun/global package install 후 `gjc --version`, `gjc --help`, `gjc --smoke-test`, non-interactive print smoke가 exit 0으로 통과했다. 단, Hermes MCP 도구 표면에는 기존 `gjc_coordinator_*` 세션 도구가 노출되어 있었고, 과거 Atock용 GJC coordinator session이 존재했다.
 - npm `gajae-code`: version `0.7.3`, description `One-line npm install wrapper for the Gajae-Code gjc CLI`, repository `gajae-ai/gajae-code`, license `MIT`.
 - GitHub `Yeachan-Heo/gajae-code`: public, MIT, default branch `main`, README와 docs 확인.
 - clone HEAD: `569a7696a8d22ffbcddbeab861951f244e1aed12`.
@@ -67,12 +67,12 @@ Gajae-Code는 **독립 runner/control surface**로 보는 것이 맞다.
 ## 약점 / Caveat
 
 - README가 beta/experimental 상태를 명시한다. 중요한 작업은 반드시 독립 검증 필요.
-- 현재 이 로컬 PATH에는 `gjc` 실행 파일이 없어서 신규 local smoke test는 수행하지 못했다.
+- 후속 pass에서 `gjc` basic smoke는 통과했다. 다만 full `ralplan`/`ultragoal`/`team` workflow와 `.gjc` artifact/recovery trace는 아직 별도 검증이 필요하다.
 - MCP coordinator는 설정된 root allowlist와 mutation env가 없으면 fail-closed한다.
 - 장기 세션은 tmux/read_tail/turn 상태 polling 운영 discipline이 필요하다.
 
 ## Confidence
 
 - README/docs 기반 workflow/bridge 설명: High
-- 로컬 GJC 신규 실행 가능성: Low, PATH에 `gjc` 없음
+- 로컬 GJC basic 실행 가능성: Medium/High, `gjc/0.7.3` version/help/smoke/print smoke는 통과했지만 workflow replay는 남음
 - Hermes-MCP 결합 가능성: Medium/High, 현재 MCP 도구 표면과 docs는 확인됐지만 새 repo root에 대한 GJC session actuation은 별도 설정 필요

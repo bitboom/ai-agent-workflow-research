@@ -1,6 +1,7 @@
 # local/internal agent state
 .omx/
 .omo/
+.gjc/
 .hermes/
 .DS_Store
 node_modules/

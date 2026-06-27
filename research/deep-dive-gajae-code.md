@@ -1,14 +1,15 @@
 # Gajae-Code Deep Dive
 
-이 문서는 LazyCodex/OmO `$ultraresearch` 저널을 controller가 public-safe 형태로 정리한 Gajae-Code 딥다이브다. 원본 raw `.omo` 저널과 로컬 로그는 공개하지 않고, publish 가능한 source/runtime/evidence claim만 남겼다.
+이 문서는 LazyCodex/OmO `$ultraresearch` 저널과 이후 GJC 기반 문서 리뷰를 controller가 public-safe 형태로 정리한 Gajae-Code 딥다이브다. 원본 raw `.omo` 저널과 로컬 로그는 공개하지 않고, publish 가능한 source/runtime/evidence claim만 남겼다.
 
 ## Verdict
 
 | Area | Status | Reason |
 | --- | --- | --- |
 | Source architecture | **source-confirmed** | local source checkout에서 package manifests, CLI registry, `.gjc` session layout, state writer, workflow command refs가 확인됨 |
-| Local `gjc` runtime | **unverified** | 현재 환경에서 `bun`과 `gjc`가 PATH에 없어 `gjc --version/help/smoke-test`를 실행하지 못함 |
-| Public package/repo provenance | **partially confirmed** | source manifests는 `gajae-ai/gajae-code`와 package version `0.7.3`을 가리키지만 npm/GitHub registry cross-check는 별도 필요 |
+| Basic local `gjc` runtime | **basic runtime-confirmed** | Bun `1.3.14`, `@gajae-code/coding-agent 0.7.3`, `gajae-code 0.7.3` 설치 후 `gjc --version`, `gjc --help`, `gjc --smoke-test`, non-interactive print smoke가 exit 0 |
+| Full workflow/session runtime | **not yet replayed** | `ralplan`/`ultragoal`/`team`이 실제 `.gjc` session artifact를 만들고 recovery/verification까지 도는지는 별도 temp-repo trace가 필요 |
+| Public package/repo provenance | **partially confirmed** | npm packages and source manifests point to `gajae-ai/gajae-code`; inspected public repo evidence also includes `Yeachan-Heo/gajae-code`, so canonical owner drift remains unresolved |
 | Hermes/GJC bridge | **source lead** | bridge docs/setup anchors는 있으나 bridge runtime trace는 없음 |
 
 ## Source anchors
@@ -27,28 +28,30 @@ UltraResearch/controller pass가 확인한 핵심 경로:
 
 ## Runtime proof status
 
-Current label: **runtime unverified**. 현재 조사에서 runtime smoke는 **실행 실패/미검증**으로 남긴다.
+Current label: **basic runtime-confirmed; full workflow replay pending**.
+
+Sanitized local capture:
 
 ```text
-bun: not found
-gjc: not found
+bun --version -> 1.3.14
+@gajae-code/coding-agent -> 0.7.3, bin.gjc -> src/cli.ts
+gajae-code -> 0.7.3, bin.gjc -> bin/gjc.js
+gjc --version -> gjc/0.7.3
+gjc --help -> exit 0, command surface rendered
+gjc --smoke-test -> smoke-test: ok
+gjc -p --model openai-codex/gpt-5.5 ... -> GJC_PRINT_SMOKE_OK
 ```
 
-따라서 “source CLI path와 smoke script가 존재한다”는 source-level feasibility일 뿐, `gjc`가 이 환경에서 실제로 동작한다는 runtime proof는 아니다.
+이 증거는 local CLI가 callable이고 basic model-backed non-interactive run이 가능한 것을 보여준다. 그러나 `deep-interview -> ralplan -> ultragoal`, `team`, `.gjc/_session-*` artifact creation/recovery, Hermes coordinator bridge까지 검증한 것은 아니다.
 
 ## Missing proof / next probes
 
-1. Bun-enabled clean environment에서 source CLI와 installed CLI를 모두 확인한다.
-   - `bun packages/coding-agent/src/cli.ts --version`
-   - `bun packages/coding-agent/src/cli.ts --help`
-   - `bun packages/coding-agent/src/cli.ts --smoke-test`
-   - installed package가 있으면 `gjc --version`, `gjc --help`, `gjc --smoke-test`
-2. npm/GitHub provenance를 controller가 직접 조회한다.
-   - `https://registry.npmjs.org/gajae-code`
-   - `https://registry.npmjs.org/gjc`
-   - `https://registry.npmjs.org/@gajae-code%2Fcoding-agent`
-   - `gh repo view gajae-ai/gajae-code`
-3. Hermes/GJC bridge source를 line-anchor로 고정한다.
+1. Temp repo에서 non-destructive workflow replay를 수행한다.
+   - `gjc ralplan --deliberate --no-review` 또는 read-only equivalent로 계획 artifact 생성 여부 확인
+   - `gjc ultragoal` minimal task로 `.gjc/_session-*` state/specs/plans/ultragoal/audit/log 생성 여부 확인
+   - `gjc team`은 tmux/worktree orphan cleanup 기준이 준비된 뒤 별도 실행
+2. Resolve canonical owner drift between npm metadata (`gajae-ai/gajae-code`) and the inspected public repo (`Yeachan-Heo/gajae-code`). Do not treat this as runtime proof.
+3. Hermes/GJC bridge source를 line-anchor로 고정하고, allowlisted temp root에서 bridge runtime trace를 별도로 캡처한다.
    - `packages/coding-agent/src/modes/bridge/bridge-mode.ts`
    - `packages/coding-agent/src/coordinator-mcp/server.ts`
    - `packages/coding-agent/src/coordinator/contract.ts`
@@ -56,6 +59,6 @@ gjc: not found
 
 ## Caveats
 
-- public search 실패나 worker-visible negative result는 “존재하지 않음”의 증거가 아니다.
-- source proof와 runtime proof를 섞으면 안 된다.
+- source proof, basic CLI smoke, full workflow runtime proof를 섞으면 안 된다.
 - Gajae-Code는 Hermes/LazyCodex와 달리 standalone TypeScript/Bun CLI/control plane이므로 비교 축을 `.gjc` state, workflow command, worktree/tmux/team orchestration 중심으로 잡아야 한다.
+- model-backed print smoke는 provider routing이 가능한지만 보여주며, 장기 coding workflow 품질이나 artifact integrity를 증명하지 않는다.

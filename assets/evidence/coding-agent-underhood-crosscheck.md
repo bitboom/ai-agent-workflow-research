@@ -2,6 +2,8 @@
 
 작성일: 2026-06-26 KST
 
+Status note: this is a preliminary controller cross-check from 2026-06-26. For canonical SHA-pinned source inputs, use `assets/evidence/source-level-architecture-atlas.md`. Clone HEADs listed here are historical orientation evidence, not the current source atlas. Later Gajae-Code basic runtime smoke evidence is recorded in `assets/evidence/gajae-code-runtime-smoke.md`.
+
 이 파일은 LazyCodex/OmO UltraResearch 결과를 controller가 별도 확인한 내용만 요약한다. 민감정보 값은 기록하지 않았다.
 
 ## LazyCodex / OmO 실행
@@ -52,4 +54,4 @@ Controller는 shallow source clones를 `/tmp/coding-agent-src`에 생성해 top-
 - Public review corpus는 이번 pass에서 깊게 수집하지 못했다. 따라서 product별 후기/장단점 prevalence는 낮거나 중간 confidence로 남긴다.
 - Closed-source 제품의 internal context ranking/model routing/indexing은 first-party docs로 공개된 surface와 실제 내부 구현을 분리해야 한다.
 - OmO manifest declaration은 runtime-callable proof와 다르다. manifest와 실제 Codex tool surface 비교는 다음 단계다.
-- Gajae-Code는 public repo/npm/source 근거가 있으나 이 환경에서 `gjc` command smoke test는 아직 통과 근거가 없다.
+- Gajae-Code는 public repo/npm/source 근거가 있고, 후속 pass에서 `gjc` basic smoke는 통과했다. 다만 full workflow/session artifact replay는 아직 통과 근거가 없다.

@@ -43,6 +43,10 @@ test('index reflects under-the-hood research scope', () => {
   assert.match(html, /deep-dive-hermes-agent\.md/);
   assert.match(html, /deep-dive-lazycodex-omo\.md/);
   assert.match(html, /agent-orchestration-comparison\.md/);
+  assert.match(html, /Evidence status/);
+  assert.match(html, /source-confirmed/);
+  assert.match(html, /basic runtime-confirmed/);
+  assert.match(html, /UltraResearch draft/);
   for (const name of ['OpenAI Codex', 'Claude Code', 'Aider', 'OpenHands', 'SWE-agent', 'LazyCodex', 'Gajae-Code', 'Hermes']) {
     assert.match(html, new RegExp(name));
   }
@@ -56,6 +60,8 @@ test('research markdown contains expected source-backed concepts', () => {
   assert.match(main, /SWE-bench/);
   assert.match(main, /Agentless/);
   assert.match(main, /Failure pattern/);
+  assert.doesNotMatch(main, /현재 `index\.html`은 네 제품 비교 중심/);
+  assert.match(main, /GitHub Pages IA Status/);
   assert.match(sourceMap, /https:\/\/arxiv\.org\/abs\/2407\.01489/);
   assert.doesNotMatch(sourceMap, /2407\.01494/);
   assert.match(framework, /Context\/localization/);
@@ -66,12 +72,19 @@ test('research markdown contains expected source-backed concepts', () => {
   const gajae = readFileSync(join(root, 'research/deep-dive-gajae-code.md'), 'utf8');
   const hermes = readFileSync(join(root, 'research/deep-dive-hermes-agent.md'), 'utf8');
   const omo = readFileSync(join(root, 'research/deep-dive-lazycodex-omo.md'), 'utf8');
-  assert.match(gajae, /runtime unverified/i);
-  assert.match(gajae, /bun: not found/);
+  assert.match(gajae, /basic runtime-confirmed/i);
+  assert.match(gajae, /gjc\/0\.7\.3/);
+  assert.match(gajae, /workflow replay pending/i);
+  assert.doesNotMatch(gajae, /bun: not found/);
   assert.match(hermes, /0\.12\.0/);
   assert.match(hermes, /0\.17\.0/);
   assert.match(omo, /runtime-callable/i);
   assert.match(omo, /manifest-declared/i);
+  const gjcReview = readFileSync(join(root, 'assets/evidence/gjc-documentation-review.md'), 'utf8');
+  const gjcSmoke = readFileSync(join(root, 'assets/evidence/gajae-code-runtime-smoke.md'), 'utf8');
+  assert.match(gjcReview, /GJC Documentation Review Pass/);
+  assert.match(gjcSmoke, /smoke-test: ok/);
+  assert.match(gjcSmoke, /GJC_PRINT_SMOKE_OK/);
 });
 
 test('no obvious credential material is committed in public files', () => {

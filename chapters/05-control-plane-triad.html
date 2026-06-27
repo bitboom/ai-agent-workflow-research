@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Chapter 05 — Gajae · Hermes · OmO control plane — AI Coding Agent 구조 해부</title>
+  <meta name="description" content="AI coding agent architecture를 책처럼 읽는 한국어 리서치 북 챕터입니다.">
+  <meta name="robots" content="index, follow">
+  <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../styles.css">
+</head>
+<body class="book-page">
+  <div class="progress" aria-hidden="true"><span id="reading-progress"></span></div>
+  <header class="site-header">
+    <a class="brand" href="../index.html" aria-label="첫 화면으로 이동">
+      <span class="brand-mark">AGENT</span>
+      <span>Architecture Book</span>
+    </a>
+    <nav class="top-nav" aria-label="상단 메뉴">
+      <a href="../index.html#contents">목차</a>
+      <a href="../index.html#architecture">공통 구조</a>
+      <a href="../index.html#control-planes">Control planes</a>
+      <a href="../appendix/evidence-index.html">근거</a>
+      <a class="button button-small" href="https://github.com/bitboom/ai-agent-workflow-research" target="_blank" rel="noopener">GitHub</a>
+    </nav>
+    <button class="toc-toggle" type="button" aria-controls="site-toc" aria-expanded="false">목차</button>
+  </header>
+  <button class="toc-backdrop" type="button" aria-label="목차 닫기" hidden></button>
+
+  <main class="book-shell section-shell">
+    <aside class="toc book-sidebar" id="site-toc" aria-label="책 목차">
+      <p class="toc-title">Book</p>
+      <nav class="chapter-nav"><a class="" href="../chapters/index.html"><span>Contents</span>목차</a>
+<a class="" href="../chapters/01-research-question.html"><span>Chapter 01</span>연구 질문</a>
+<a class="" href="../chapters/02-agent-taxonomy.html"><span>Chapter 02</span>Agent 분류</a>
+<a class="" href="../chapters/03-common-architecture.html"><span>Chapter 03</span>공통 구조</a>
+<a class="" href="../chapters/04-implementation-atlas.html"><span>Chapter 04</span>구현체 지도</a>
+<a class="active" href="../chapters/05-control-plane-triad.html"><span>Chapter 05</span>Control planes</a>
+<a class="" href="../chapters/06-evaluation-framework.html"><span>Chapter 06</span>평가</a>
+<a class="" href="../chapters/07-caveats-and-next.html"><span>Chapter 07</span>다음 실험</a>
+<a class="" href="../appendix/evidence-index.html"><span>Appendix</span>Evidence index</a></nav>
+      <p class="toc-title section-toc-title">On this page</p>
+      <nav class="page-toc"><a class="level-2" href="#세-시스템을-따로-읽는-이유">세 시스템을 따로 읽는 이유</a>
+<a class="level-2" href="#gajae-code-최신-판정">Gajae-Code 최신 판정</a>
+<a class="level-2" href="#hermes-agent-최신-판정">Hermes Agent 최신 판정</a>
+<a class="level-2" href="#lazycodex-omo-최신-판정">LazyCodex / OmO 최신 판정</a>
+<a class="level-2" href="#이-장의-결론">이 장의 결론</a>
+<a class="level-2" href="#더-읽기">더 읽기</a></nav>
+    </aside>
+    <article class="book-article">
+      <p class="eyebrow">Chapter 05</p>
+      <h1>Chapter 05 — Gajae · Hermes · OmO control plane</h1>
+      <div class="book-nav top"><a class="book-prev" href="../chapters/04-implementation-atlas.html"><span>이전</span>구현체 지도</a><a class="book-next" href="../chapters/06-evaluation-framework.html"><span>다음</span>평가</a></div>
+      <div class="rendered-markdown">
+<h2 id="세-시스템을-따로-읽는-이유">세 시스템을 따로 읽는 이유</h2>
+<p>Gajae-Code, Hermes Agent, LazyCodex/OmO는 단순 editor helper가 아니라 agent workflow를 조직하는 control plane입니다. 이들은 “코드를 한 번 수정하는 agent”보다 긴 시간축을 다룹니다. plan을 만들고, review를 통과시키고, state를 저장하고, worker나 subagent를 호출하고, 실패 후 복구하거나 다음 run으로 이어지는 구조가 핵심입니다.</p>
+<div class="table-wrap"><table>
+<thead><tr><th>시스템</th><th>State root</th><th>현재 강한 증거</th><th>남은 증거</th></tr></thead>
+<tbody>
+<tr><td>Gajae-Code</td><td><code>.gjc/_session-*</code></td><td><code>gjc/0.7.3</code> smoke + controlled workflow artifact replay</td><td>live non-dry-run team, recovery/resume, Hermes bridge</td></tr>
+<tr><td>Hermes Agent</td><td><code>~/.hermes/</code></td><td>local runtime <code>0.12.0</code>, source clone <code>0.17.0</code> map</td><td>version parity, gateway/cron/MCP/delegate trace</td></tr>
+<tr><td>LazyCodex/OmO</td><td><code>.omo/</code> + Codex plugin cache</td><td>plugin manifest + <code>$ultraresearch</code> artifact journal</td><td>non-ultraresearch workflow replay, MCP callability</td></tr>
+</tbody></table></div>
+<h2 id="gajae-code-최신-판정">Gajae-Code 최신 판정</h2>
+<p>Gajae-Code는 이번 프로젝트에서 가장 runtime evidence가 진전된 축입니다. Bun/global package 환경에서 <code>gjc/0.7.3</code> version/help/smoke/print smoke가 확인됐고, isolated temp repo에서 <code>deep-interview</code>, <code>ralplan</code>, <code>ultragoal</code>, <code>team --dry-run</code> command surface가 artifact를 생성하는 controlled replay도 확인됐습니다.</p>
+<p>중요한 점은 이 claim의 범위입니다. 확인된 것은 <code>.gjc/_session-replay-20260627</code> 아래 specs, plans, state, ultragoal ledger, team dry-run manifest가 생성된다는 점입니다. 아직 live tmux/worktree worker, heartbeat, orphan cleanup, recovery/resume, Hermes bridge runtime은 증명하지 않았습니다. 따라서 “Gajae가 full autonomous team을 production-ready로 증명했다”라고 쓰면 안 됩니다.</p>
+<h2 id="hermes-agent-최신-판정">Hermes Agent 최신 판정</h2>
+<p>Hermes는 persistent runtime으로 읽어야 합니다. memory, cron, delegation, gateway, messaging identity, MCP bridge 같은 기능은 단일 coding CLI보다 넓은 control plane을 구성합니다. 그러나 현재 public evidence에서는 local installed runtime <code>0.12.0</code>과 source clone <code>0.17.0</code> 사이 drift를 분리해야 합니다. source clone의 최신 기능을 local runtime에서 실행됐다고 말하면 안 됩니다.</p>
+<p>다음 증거는 sanitized trace가 필요합니다. <code>~/.hermes/</code> state root, cron/delegate/gateway/MCP call-chain, session DB 또는 logs를 공개 가능한 범위로 요약해야 합니다. credentials, provider config, private chat identity는 절대 public evidence에 남기지 않습니다.</p>
+<h2 id="lazycodex-omo-최신-판정">LazyCodex / OmO 최신 판정</h2>
+<p>LazyCodex/OmO는 Codex 위 plugin/harness layer로 읽습니다. manifest에는 commands, hooks, MCP servers, subagent 관련 surface가 보일 수 있지만 manifest-declared와 runtime-callable은 다릅니다. 이 프로젝트에서는 <code>$ultraresearch</code> artifact journal과 synthesis가 있어 해당 workflow는 artifact-backed로 볼 수 있습니다. 그러나 <code>$ulw-loop</code>, <code>$review-work</code>, <code>$init-deep</code>, <code>$start-work</code> 등은 별도 isolated replay가 필요합니다.</p>
+<h2 id="이-장의-결론">이 장의 결론</h2>
+<p>세 시스템은 모두 “agent를 쓰는 방법”이 아니라 “agent 작업을 조직하는 방법”을 보여줍니다. 따라서 feature count보다 state root, durable artifact, replayability, recovery path, public-safe evidence policy가 중요합니다.</p>
+<h2 id="더-읽기">더 읽기</h2>
+<ul><li><a href="../research/deep-dive-gajae-code.md">Gajae-Code deep dive</a></li><li><a href="../assets/evidence/gajae-code-workflow-replay.md">GJC workflow replay</a></li><li><a href="../research/deep-dive-hermes-agent.md">Hermes Agent deep dive</a></li><li><a href="../research/deep-dive-lazycodex-omo.md">LazyCodex/OmO deep dive</a></li><li><a href="../assets/evidence/agent-orchestration-comparison.md">Agent orchestration comparison</a></li></ul>
+      </div>
+      <div class="book-nav bottom"><a class="book-prev" href="../chapters/04-implementation-atlas.html"><span>이전</span>구현체 지도</a><a class="book-next" href="../chapters/06-evaluation-framework.html"><span>다음</span>평가</a></div>
+      <footer class="article-footer">
+        <p>이 페이지는 repository의 source Markdown에서 생성된 public HTML book page입니다. 세부 evidence artifact는 <a href="../appendix/evidence-index.html">Evidence index</a>에서 확인하세요.</p>
+      </footer>
+    </article>
+  </main>
+  <script src="../script.js"></script>
+</body>
+</html>

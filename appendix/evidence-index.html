@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Appendix — Evidence index — AI Coding Agent 구조 해부</title>
+  <meta name="description" content="AI coding agent architecture를 책처럼 읽는 한국어 리서치 북 챕터입니다.">
+  <meta name="robots" content="index, follow">
+  <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../styles.css">
+</head>
+<body class="book-page">
+  <div class="progress" aria-hidden="true"><span id="reading-progress"></span></div>
+  <header class="site-header">
+    <a class="brand" href="../index.html" aria-label="첫 화면으로 이동">
+      <span class="brand-mark">AGENT</span>
+      <span>Architecture Book</span>
+    </a>
+    <nav class="top-nav" aria-label="상단 메뉴">
+      <a href="../index.html#contents">목차</a>
+      <a href="../index.html#architecture">공통 구조</a>
+      <a href="../index.html#control-planes">Control planes</a>
+      <a href="../appendix/evidence-index.html">근거</a>
+      <a class="button button-small" href="https://github.com/bitboom/ai-agent-workflow-research" target="_blank" rel="noopener">GitHub</a>
+    </nav>
+    <button class="toc-toggle" type="button" aria-controls="site-toc" aria-expanded="false">목차</button>
+  </header>
+  <button class="toc-backdrop" type="button" aria-label="목차 닫기" hidden></button>
+
+  <main class="book-shell section-shell">
+    <aside class="toc book-sidebar" id="site-toc" aria-label="책 목차">
+      <p class="toc-title">Book</p>
+      <nav class="chapter-nav"><a class="" href="../chapters/index.html"><span>Contents</span>목차</a>
+<a class="" href="../chapters/01-research-question.html"><span>Chapter 01</span>연구 질문</a>
+<a class="" href="../chapters/02-agent-taxonomy.html"><span>Chapter 02</span>Agent 분류</a>
+<a class="" href="../chapters/03-common-architecture.html"><span>Chapter 03</span>공통 구조</a>
+<a class="" href="../chapters/04-implementation-atlas.html"><span>Chapter 04</span>구현체 지도</a>
+<a class="" href="../chapters/05-control-plane-triad.html"><span>Chapter 05</span>Control planes</a>
+<a class="" href="../chapters/06-evaluation-framework.html"><span>Chapter 06</span>평가</a>
+<a class="" href="../chapters/07-caveats-and-next.html"><span>Chapter 07</span>다음 실험</a>
+<a class="active" href="../appendix/evidence-index.html"><span>Appendix</span>Evidence index</a></nav>
+      <p class="toc-title section-toc-title">On this page</p>
+      <nav class="page-toc"><a class="level-2" href="#how-to-use-this-appendix">How to use this appendix</a>
+<a class="level-2" href="#canonical-controller-reviewed">Canonical / controller-reviewed</a>
+<a class="level-2" href="#control-plane-deep-dives">Control-plane deep dives</a>
+<a class="level-2" href="#research-chapters-retained-as-archive">Research chapters retained as archive</a>
+<a class="level-2" href="#public-evidence-policy">Public evidence policy</a>
+<a class="level-2" href="#reader-note">Reader note</a></nav>
+    </aside>
+    <article class="book-article">
+      <p class="eyebrow">Appendix</p>
+      <h1>Appendix — Evidence index</h1>
+      <div class="book-nav top"><a class="book-prev" href="../chapters/07-caveats-and-next.html"><span>이전</span>다음 실험</a><span></span></div>
+      <div class="rendered-markdown">
+<p>이 페이지는 본문에서 생략한 상세 근거의 위치를 안내합니다. 본문은 독서 흐름을 위해 짧게 유지하고, source path·runtime command·artifact inventory·controller cross-check는 이 부록에서 찾도록 분리했습니다.</p>
+<h2 id="how-to-use-this-appendix">How to use this appendix</h2>
+<ol><li>먼저 본문에서 claim의 라벨을 확인합니다.</li><li>아래 표에서 해당 claim의 evidence file을 엽니다.</li><li>source-confirmed, runtime-confirmed, artifact-backed가 서로 섞이지 않았는지 확인합니다.</li><li>raw local state, provider config, private log는 public evidence에 없다는 점을 전제로 읽습니다.</li></ol>
+<h2 id="canonical-controller-reviewed">Canonical / controller-reviewed</h2>
+<div class="table-wrap"><table>
+<thead><tr><th>목적</th><th>파일</th><th>역할</th></tr></thead>
+<tbody>
+<tr><td>전체 source-level map</td><td><a href="../assets/evidence/source-level-architecture-atlas.md">source-level-architecture-atlas.md</a></td><td>구현체별 loop/context/edit/sandbox/state anchor</td></tr>
+<tr><td>agent orchestration comparison</td><td><a href="../assets/evidence/agent-orchestration-comparison.md">agent-orchestration-comparison.md</a></td><td>Gajae/Hermes/OmO 등 orchestration proof status</td></tr>
+<tr><td>reconciled facts</td><td><a href="../assets/evidence/reconciled-facts.md">reconciled-facts.md</a></td><td>agent output과 controller cross-check 차이 정리</td></tr>
+<tr><td>controller cross-check</td><td><a href="../assets/evidence/coding-agent-underhood-crosscheck.md">coding-agent-underhood-crosscheck.md</a></td><td>UltraResearch 수정 및 confidence 조정</td></tr>
+</tbody></table></div>
+<h2 id="control-plane-deep-dives">Control-plane deep dives</h2>
+<div class="table-wrap"><table>
+<thead><tr><th>시스템</th><th>Narrative</th><th>Evidence</th></tr></thead>
+<tbody>
+<tr><td>Gajae-Code</td><td><a href="../research/deep-dive-gajae-code.md">deep-dive-gajae-code.md</a></td><td><a href="../assets/evidence/gajae-code-runtime-smoke.md">runtime smoke</a>, <a href="../assets/evidence/gajae-code-workflow-replay.md">workflow replay</a>, <a href="../assets/evidence/gajae-code-crosscheck.md">crosscheck</a></td></tr>
+<tr><td>Hermes Agent</td><td><a href="../research/deep-dive-hermes-agent.md">deep-dive-hermes-agent.md</a></td><td><a href="../assets/evidence/hermes-local-version-drift.md">version drift</a>, <a href="../assets/evidence/hermes-crosscheck.md">crosscheck</a></td></tr>
+<tr><td>LazyCodex/OmO</td><td><a href="../research/deep-dive-lazycodex-omo.md">deep-dive-lazycodex-omo.md</a></td><td><a href="../assets/evidence/lazycodex-runtime-callable-surface.md">runtime-callable surface</a>, <a href="../assets/evidence/lazycodex-crosscheck.md">crosscheck</a></td></tr>
+</tbody></table></div>
+<h2 id="research-chapters-retained-as-archive">Research chapters retained as archive</h2>
+<div class="table-wrap"><table>
+<thead><tr><th>목적</th><th>파일</th><th>비고</th></tr></thead>
+<tbody>
+<tr><td>UltraResearch draft/hypothesis</td><td><a href="../research/coding-agent-underhood-ultraresearch.md">coding-agent-underhood-ultraresearch.md</a></td><td>canonical source가 아니라 controller 검토 대상</td></tr>
+<tr><td>taxonomy details</td><td><a href="../research/coding-agent-taxonomy.md">coding-agent-taxonomy.md</a></td><td>agent 계열 분류의 상세 note</td></tr>
+<tr><td>source map</td><td><a href="../research/coding-agent-source-map.md">coding-agent-source-map.md</a></td><td>papers, repos, docs, issue sweep anchor</td></tr>
+<tr><td>evaluation framework</td><td><a href="../research/coding-agent-evaluation-framework.md">coding-agent-evaluation-framework.md</a></td><td>rubric, trace schema, benchmark plan</td></tr>
+<tr><td>open questions</td><td><a href="../research/coding-agent-open-questions.md">coding-agent-open-questions.md</a></td><td>아직 닫히지 않은 research 질문</td></tr>
+</tbody></table></div>
+<h2 id="public-evidence-policy">Public evidence policy</h2>
+<ul><li>raw agent logs, <code>.omo/</code>, <code>.gjc/</code>, provider config, credentials, and local private paths are excluded.</li><li>agent outputs are accepted only after controller cross-check.</li><li>runtime claims require command output and, where relevant, durable artifact paths.</li><li>public issue/review material is taxonomy evidence, not prevalence proof.</li><li>closed-source internal implementation claims remain low confidence unless official docs state them directly.</li></ul>
+<h2 id="reader-note">Reader note</h2>
+<p>Evidence 파일 일부는 intentionally raw Markdown입니다. 그것들은 책 본문이 아니라 source/evidence artifact 역할을 합니다. 읽기용 본문은 <code>chapters/*.html</code>과 이 부록 HTML을 기준으로 삼고, 세부 근거를 확인할 때 raw evidence를 엽니다.</p>
+      </div>
+      <div class="book-nav bottom"><a class="book-prev" href="../chapters/07-caveats-and-next.html"><span>이전</span>다음 실험</a><span></span></div>
+      <footer class="article-footer">
+        <p>이 페이지는 repository의 source Markdown에서 생성된 public HTML book page입니다. 세부 evidence artifact는 <a href="../appendix/evidence-index.html">Evidence index</a>에서 확인하세요.</p>
+      </footer>
+    </article>
+  </main>
+  <script src="../script.js"></script>
+</body>
+</html>

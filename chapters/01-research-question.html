@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Chapter 01 — 연구 질문과 판정 기준 — AI Coding Agent 구조 해부</title>
+  <meta name="description" content="AI coding agent architecture를 책처럼 읽는 한국어 리서치 북 챕터입니다.">
+  <meta name="robots" content="index, follow">
+  <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../styles.css">
+</head>
+<body class="book-page">
+  <div class="progress" aria-hidden="true"><span id="reading-progress"></span></div>
+  <header class="site-header">
+    <a class="brand" href="../index.html" aria-label="첫 화면으로 이동">
+      <span class="brand-mark">AGENT</span>
+      <span>Architecture Book</span>
+    </a>
+    <nav class="top-nav" aria-label="상단 메뉴">
+      <a href="../index.html#contents">목차</a>
+      <a href="../index.html#architecture">공통 구조</a>
+      <a href="../index.html#control-planes">Control planes</a>
+      <a href="../appendix/evidence-index.html">근거</a>
+      <a class="button button-small" href="https://github.com/bitboom/ai-agent-workflow-research" target="_blank" rel="noopener">GitHub</a>
+    </nav>
+    <button class="toc-toggle" type="button" aria-controls="site-toc" aria-expanded="false">목차</button>
+  </header>
+  <button class="toc-backdrop" type="button" aria-label="목차 닫기" hidden></button>
+
+  <main class="book-shell section-shell">
+    <aside class="toc book-sidebar" id="site-toc" aria-label="책 목차">
+      <p class="toc-title">Book</p>
+      <nav class="chapter-nav"><a class="" href="../chapters/index.html"><span>Contents</span>목차</a>
+<a class="active" href="../chapters/01-research-question.html"><span>Chapter 01</span>연구 질문</a>
+<a class="" href="../chapters/02-agent-taxonomy.html"><span>Chapter 02</span>Agent 분류</a>
+<a class="" href="../chapters/03-common-architecture.html"><span>Chapter 03</span>공통 구조</a>
+<a class="" href="../chapters/04-implementation-atlas.html"><span>Chapter 04</span>구현체 지도</a>
+<a class="" href="../chapters/05-control-plane-triad.html"><span>Chapter 05</span>Control planes</a>
+<a class="" href="../chapters/06-evaluation-framework.html"><span>Chapter 06</span>평가</a>
+<a class="" href="../chapters/07-caveats-and-next.html"><span>Chapter 07</span>다음 실험</a>
+<a class="" href="../appendix/evidence-index.html"><span>Appendix</span>Evidence index</a></nav>
+      <p class="toc-title section-toc-title">On this page</p>
+      <nav class="page-toc"><a class="level-2" href="#한-문장-질문">한 문장 질문</a>
+<a class="level-2" href="#이-연구가-버리는-질문">이 연구가 버리는 질문</a>
+<a class="level-2" href="#이-연구가-보는-질문">이 연구가 보는 질문</a>
+<a class="level-2" href="#판정-라벨">판정 라벨</a>
+<a class="level-2" href="#독자가-얻어야-하는-것">독자가 얻어야 하는 것</a>
+<a class="level-2" href="#핵심-근거">핵심 근거</a></nav>
+    </aside>
+    <article class="book-article">
+      <p class="eyebrow">Chapter 01</p>
+      <h1>Chapter 01 — 연구 질문과 판정 기준</h1>
+      <div class="book-nav top"><a class="book-prev" href="../chapters/index.html"><span>이전</span>목차</a><a class="book-next" href="../chapters/02-agent-taxonomy.html"><span>다음</span>Agent 분류</a></div>
+      <div class="rendered-markdown">
+<h2 id="한-문장-질문">한 문장 질문</h2>
+<p>AI coding agent를 제품 기능표가 아니라 <strong>agent loop, context assembly, tool boundary, verification gate, durable state</strong> 관점에서 어떻게 읽을 것인가?</p>
+<p>이 질문은 일부러 제품 순위를 묻지 않습니다. 같은 모델을 쓰더라도 agent가 어떤 파일을 읽는지, 어떤 command를 실행할 수 있는지, 실패한 test를 어떻게 반영하는지, 세션이 끝난 뒤 state를 복구할 수 있는지에 따라 결과는 크게 달라집니다. 따라서 이 책의 단위는 “제품명”이 아니라 <strong>구조적 책임 영역</strong>입니다.</p>
+<h2 id="이-연구가-버리는-질문">이 연구가 버리는 질문</h2>
+<ul><li>“어느 제품이 제일 좋은가?”</li><li>“어느 모델이 제일 똑똑한가?”</li><li>“벤치마크 점수 하나로 제품 품질을 말할 수 있는가?”</li></ul>
+<p>이 질문들은 빠른 의사결정에는 유혹적이지만, 원인을 설명하지 못합니다. 어떤 agent가 patch를 잘못 만들었을 때 모델이 약해서인지, repo index가 stale해서인지, edit tool이 whole-file rewrite를 유도해서인지, verification gate가 실패를 숨겨서인지 분리할 수 없기 때문입니다.</p>
+<h2 id="이-연구가-보는-질문">이 연구가 보는 질문</h2>
+<ol><li>loop는 IDE, CLI, runner, coordinator 중 어디에 있는가?</li><li>context는 어떤 source에서 오고 어떻게 압축되는가?</li><li>edits와 shell/tool 실행은 어떤 boundary를 통과하는가?</li><li>verification은 test result뿐 아니라 trajectory까지 남기는가?</li><li>state는 session 밖에서도 복구 가능한가?</li></ol>
+<p>이 다섯 질문에 답하면 “agent가 똑똑하다”라는 막연한 표현을 더 구체적인 claim으로 바꿀 수 있습니다. 예를 들어 Gajae-Code는 <code>.gjc/_session-*</code> artifact를 남기는 workflow surface가 강점이지만 live team/recovery proof는 아직 별도입니다. Hermes는 persistent runtime이라는 장점이 있지만 local runtime과 source clone의 version drift를 분리해야 합니다. OmO는 manifest-declared hooks와 실제 runtime-callable workflow를 따로 확인해야 합니다.</p>
+<h2 id="판정-라벨">판정 라벨</h2>
+<div class="table-wrap"><table>
+<thead><tr><th>라벨</th><th>뜻</th><th>예시</th></tr></thead>
+<tbody>
+<tr><td><code>source-confirmed</code></td><td>repo clone 또는 package source에서 직접 확인한 claim</td><td>command file, runtime module, test harness path</td></tr>
+<tr><td><code>runtime-confirmed</code></td><td>현재 환경에서 command가 실행되고 결과를 반환한 claim</td><td>version/help/smoke command exit 0</td></tr>
+<tr><td><code>artifact-backed</code></td><td>실행 후 trace/state/ledger가 남은 claim</td><td><code>.gjc</code>, <code>.omo</code>, jsonl ledger, generated plan</td></tr>
+<tr><td><code>manifest-confirmed</code></td><td>선언은 있으나 callability는 별도 검증이 필요한 claim</td><td>plugin hook, MCP server manifest</td></tr>
+<tr><td><code>unverified</code></td><td>아직 가설 또는 agent draft에만 있는 claim</td><td>closed-source internal ranking 추정</td></tr>
+</tbody></table></div>
+<p>이 라벨은 문서의 안전장치입니다. 같은 문장 안에서도 “소스에서 보인다”와 “실제로 실행됐다”와 “실행 결과 artifact가 남았다”는 다릅니다. 이 책은 그 차이를 독자에게 숨기지 않습니다.</p>
+<h2 id="독자가-얻어야-하는-것">독자가 얻어야 하는 것</h2>
+<p>이 장을 읽고 나면 이후 장의 claim을 읽을 때 “근거의 종류가 무엇인가”를 먼저 묻게 됩니다. source path가 있는지, runtime command가 있는지, artifact가 있는지, 아니면 아직 manifest나 draft에 머무는지 구분하는 능력이 이 리서치 북의 핵심입니다.</p>
+<h2 id="핵심-근거">핵심 근거</h2>
+<ul><li><a href="../assets/evidence/source-level-architecture-atlas.md">Source-level architecture atlas</a></li><li><a href="../assets/evidence/coding-agent-underhood-crosscheck.md">Controller cross-check notes</a></li><li><a href="../assets/evidence/reconciled-facts.md">Reconciled facts</a></li></ul>
+      </div>
+      <div class="book-nav bottom"><a class="book-prev" href="../chapters/index.html"><span>이전</span>목차</a><a class="book-next" href="../chapters/02-agent-taxonomy.html"><span>다음</span>Agent 분류</a></div>
+      <footer class="article-footer">
+        <p>이 페이지는 repository의 source Markdown에서 생성된 public HTML book page입니다. 세부 evidence artifact는 <a href="../appendix/evidence-index.html">Evidence index</a>에서 확인하세요.</p>
+      </footer>
+    </article>
+  </main>
+  <script src="../script.js"></script>
+</body>
+</html>

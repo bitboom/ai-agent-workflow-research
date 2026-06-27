@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Chapter 07 — 남은 질문과 다음 실험 — AI Coding Agent 구조 해부</title>
+  <meta name="description" content="AI coding agent architecture를 책처럼 읽는 한국어 리서치 북 챕터입니다.">
+  <meta name="robots" content="index, follow">
+  <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../styles.css">
+</head>
+<body class="book-page">
+  <div class="progress" aria-hidden="true"><span id="reading-progress"></span></div>
+  <header class="site-header">
+    <a class="brand" href="../index.html" aria-label="첫 화면으로 이동">
+      <span class="brand-mark">AGENT</span>
+      <span>Architecture Book</span>
+    </a>
+    <nav class="top-nav" aria-label="상단 메뉴">
+      <a href="../index.html#contents">목차</a>
+      <a href="../index.html#architecture">공통 구조</a>
+      <a href="../index.html#control-planes">Control planes</a>
+      <a href="../appendix/evidence-index.html">근거</a>
+      <a class="button button-small" href="https://github.com/bitboom/ai-agent-workflow-research" target="_blank" rel="noopener">GitHub</a>
+    </nav>
+    <button class="toc-toggle" type="button" aria-controls="site-toc" aria-expanded="false">목차</button>
+  </header>
+  <button class="toc-backdrop" type="button" aria-label="목차 닫기" hidden></button>
+
+  <main class="book-shell section-shell">
+    <aside class="toc book-sidebar" id="site-toc" aria-label="책 목차">
+      <p class="toc-title">Book</p>
+      <nav class="chapter-nav"><a class="" href="../chapters/index.html"><span>Contents</span>목차</a>
+<a class="" href="../chapters/01-research-question.html"><span>Chapter 01</span>연구 질문</a>
+<a class="" href="../chapters/02-agent-taxonomy.html"><span>Chapter 02</span>Agent 분류</a>
+<a class="" href="../chapters/03-common-architecture.html"><span>Chapter 03</span>공통 구조</a>
+<a class="" href="../chapters/04-implementation-atlas.html"><span>Chapter 04</span>구현체 지도</a>
+<a class="" href="../chapters/05-control-plane-triad.html"><span>Chapter 05</span>Control planes</a>
+<a class="" href="../chapters/06-evaluation-framework.html"><span>Chapter 06</span>평가</a>
+<a class="active" href="../chapters/07-caveats-and-next.html"><span>Chapter 07</span>다음 실험</a>
+<a class="" href="../appendix/evidence-index.html"><span>Appendix</span>Evidence index</a></nav>
+      <p class="toc-title section-toc-title">On this page</p>
+      <nav class="page-toc"><a class="level-2" href="#아직-주장하지-않는-것">아직 주장하지 않는 것</a>
+<a class="level-2" href="#남은-p0">남은 P0</a>
+<a class="level-2" href="#남은-p1">남은 P1</a>
+<a class="level-2" href="#계속-유지할-caveat">계속 유지할 caveat</a>
+<a class="level-2" href="#다음-개정-방향">다음 개정 방향</a>
+<a class="level-2" href="#닫는-말">닫는 말</a></nav>
+    </aside>
+    <article class="book-article">
+      <p class="eyebrow">Chapter 07</p>
+      <h1>Chapter 07 — 남은 질문과 다음 실험</h1>
+      <div class="book-nav top"><a class="book-prev" href="../chapters/06-evaluation-framework.html"><span>이전</span>평가</a><a class="book-next" href="../appendix/evidence-index.html"><span>다음</span>Evidence index</a></div>
+      <div class="rendered-markdown">
+<h2 id="아직-주장하지-않는-것">아직 주장하지 않는 것</h2>
+<p>이 책은 polished landing page가 아니라 evidence-bound research book이어야 합니다. 따라서 확인하지 않은 내용을 marketing copy로 승격하지 않습니다. 특히 Gajae-Code, Hermes Agent, LazyCodex/OmO는 control plane으로 흥미롭지만, 각자 남은 runtime proof가 다릅니다.</p>
+<h2 id="남은-p0">남은 P0</h2>
+<ol><li><strong>Gajae live team replay</strong> — dry-run이 아니라 실제 tmux/worktree worker, orphan cleanup, heartbeat/recovery 확인.</li><li><strong>Hermes runtime/source drift</strong> — installed <code>0.12.0</code>과 source <code>0.17.0</code>의 feature/file-level 차이 정리.</li><li><strong>OmO runtime-callable matrix</strong> — <code>$ulw-loop</code>, <code>$review-work</code>, <code>$init-deep</code> 등 non-ultraresearch workflow replay.</li></ol>
+<p>이 세 항목은 claim의 강도를 바꿀 수 있기 때문에 우선순위가 높습니다. 특히 live orchestration과 recovery는 control plane의 핵심이므로 source만 읽어서는 충분하지 않습니다.</p>
+<h2 id="남은-p1">남은 P1</h2>
+<ul><li>benchmark source review note</li><li>task template + trace schema</li><li>public issue/review sweep v2</li><li>5–10개 curated benchmark task pilot</li></ul>
+<p>P1의 목적은 agent를 많이 돌리는 것이 아니라 비교 가능한 evidence corpus를 만드는 것입니다. public issue/review sweep도 prevalence claim을 만들기 위한 것이 아니라 failure taxonomy를 풍부하게 하기 위한 것입니다.</p>
+<h2 id="계속-유지할-caveat">계속 유지할 caveat</h2>
+<ul><li>UltraResearch는 canonical source가 아닙니다.</li><li>closed-source internal routing/indexing은 공식 문서 밖이면 low confidence입니다.</li><li>public issue corpus는 prevalence proof가 아니라 taxonomy evidence입니다.</li><li>raw <code>.omo</code>, <code>.gjc</code>, provider config, local logs는 public Pages에 올리지 않습니다.</li><li>local runtime observation은 모든 workflow command가 production-ready임을 보장하지 않습니다.</li></ul>
+<h2 id="다음-개정-방향">다음 개정 방향</h2>
+<p>다음 개정은 두 갈래입니다. 첫째, 이 책의 UX를 더 책답게 만들기 위해 모든 chapter와 appendix를 HTML book page로 렌더링하고, raw Markdown은 source file로 남깁니다. 둘째, evidence를 더 강하게 만들기 위해 Gajae live team, Hermes trace, OmO workflow replay를 순서대로 추가합니다.</p>
+<h2 id="닫는-말">닫는 말</h2>
+<p>agent architecture atlas의 가치는 “모든 agent를 한 번에 정답처럼 설명하는 것”이 아니라, claim의 근거 수준을 계속 업데이트할 수 있는 구조에 있습니다. 이 책은 그 구조를 유지하면서 새 runtime proof가 생길 때마다 판정을 바꾸는 방식으로 발전해야 합니다.</p>
+      </div>
+      <div class="book-nav bottom"><a class="book-prev" href="../chapters/06-evaluation-framework.html"><span>이전</span>평가</a><a class="book-next" href="../appendix/evidence-index.html"><span>다음</span>Evidence index</a></div>
+      <footer class="article-footer">
+        <p>이 페이지는 repository의 source Markdown에서 생성된 public HTML book page입니다. 세부 evidence artifact는 <a href="../appendix/evidence-index.html">Evidence index</a>에서 확인하세요.</p>
+      </footer>
+    </article>
+  </main>
+  <script src="../script.js"></script>
+</body>
+</html>

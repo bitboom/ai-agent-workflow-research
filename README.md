@@ -3,8 +3,8 @@
 GitHub Pages용 한국어 리서치 북입니다.
 
 - Site: https://bitboom.github.io/ai-agent-workflow-research/
-- Book contents: `chapters/README.md`
-- Evidence index: `appendix/evidence-index.md`
+- Book contents: `chapters/index.html` generated from `chapters/README.md`
+- Evidence index: `appendix/evidence-index.html` generated from `appendix/evidence-index.md`
 - Canonical source atlas: `assets/evidence/source-level-architecture-atlas.md`
 
 ## Purpose
@@ -13,14 +13,22 @@ GitHub Pages용 한국어 리서치 북입니다.
 
 ## Reading order
 
-1. `chapters/01-research-question.md`
-2. `chapters/02-agent-taxonomy.md`
-3. `chapters/03-common-architecture.md`
-4. `chapters/04-implementation-atlas.md`
-5. `chapters/05-control-plane-triad.md`
-6. `chapters/06-evaluation-framework.md`
-7. `chapters/07-caveats-and-next.md`
-8. `appendix/evidence-index.md`
+1. `chapters/01-research-question.html`
+2. `chapters/02-agent-taxonomy.html`
+3. `chapters/03-common-architecture.html`
+4. `chapters/04-implementation-atlas.html`
+5. `chapters/05-control-plane-triad.html`
+6. `chapters/06-evaluation-framework.html`
+7. `chapters/07-caveats-and-next.html`
+8. `appendix/evidence-index.html`
+
+Source Markdown remains next to the generated HTML so the book pages can be regenerated and reviewed in GitHub diffs.
+
+## Build generated book pages
+
+```bash
+python3 scripts/build-book-pages.py
+```
 
 ## Evidence policy
 
@@ -31,6 +39,7 @@ GitHub Pages용 한국어 리서치 북입니다.
 ## Local verification
 
 ```bash
+npm run build
 npm test
 git diff --check
 python3 -m http.server 8124

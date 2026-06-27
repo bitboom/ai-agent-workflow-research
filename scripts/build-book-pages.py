@@ -13,6 +13,8 @@ from dataclasses import dataclass
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
+BASE_URL = 'https://bitboom.github.io/ai-agent-workflow-research/'
+
 
 @dataclass(frozen=True)
 class Page:
@@ -20,6 +22,7 @@ class Page:
     output: str
     label: str
     short: str
+
 
 PAGES = [
     Page('chapters/README.md', 'chapters/index.html', 'Contents', '목차'),
@@ -95,6 +98,26 @@ def inline(text: str, source_path: Path, output_path: Path) -> str:
 
     text = re.sub('\uFFF0(\d+)\uFFF1', unstash, text)
     return text
+
+
+def plain_text(markdown: str) -> str:
+    text = re.sub(r'```[\s\S]*?```', ' ', markdown)
+    text = re.sub(r'^#+\s*', '', text, flags=re.MULTILINE)
+    text = re.sub(r'\[([^\]]+)\]\([^)]+\)', r'\1', text)
+    text = re.sub(r'[`*_>|]', '', text)
+    text = re.sub(r'\s+', ' ', text).strip()
+    return text
+
+
+def page_description(markdown: str) -> str:
+    for block in re.split(r'\n\s*\n', markdown):
+        stripped = block.strip()
+        if not stripped or stripped.startswith('#') or stripped.startswith('[') or stripped.startswith('|'):
+            continue
+        desc = plain_text(stripped)
+        if desc:
+            return desc[:155]
+    return 'AI coding agent architecture를 source path, runtime proof, artifact, failure mode로 읽는 한국어 리서치 북 챕터입니다.'
 
 
 def is_table_start(lines: list[str], i: int) -> bool:
@@ -213,27 +236,54 @@ def nav_href(target: Page, current: Page) -> str:
     return Path(rel_prefix(current.output) + target.output).as_posix()
 
 
-def template(page: Page, title: str, body: str, headings: list[tuple[int, str, str]]) -> str:
+def absolute_href(target: Page) -> str:
+    return BASE_URL + target.output
+
+
+def chapter_nav_link(target: Page, current: Page) -> str:
+    class_attr = 'active' if target == current else ''
+    current_attr = ' aria-current="page"' if target == current else ''
+    return (
+        f'<a class="{class_attr}"{current_attr} href="{nav_href(target, current)}">'
+        f'<span>{html.escape(target.label)}</span>{html.escape(target.short)}</a>'
+    )
+
+
+def template(page: Page, title: str, body: str, headings: list[tuple[int, str, str]], description: str) -> str:
     prefix = rel_prefix(page.output)
+    canonical = BASE_URL + page.output
     prevp, nextp = page_nav(page)
     toc_links = '\n'.join(
         f'<a class="level-{level}" href="#{sid}">{html.escape(text)}</a>'
         for level, text, sid in headings if level <= 3
     ) or '<span class="empty-toc">섹션 목차 없음</span>'
-    chapter_links = '\n'.join(
-        f'<a class="{"active" if p == page else ""}" href="{nav_href(p, page)}"><span>{p.label}</span>{html.escape(p.short)}</a>'
-        for p in PAGES
-    )
+    chapter_links = '\n'.join(chapter_nav_link(p, page) for p in PAGES)
+    prev_head = f'  <link rel="prev" href="{html.escape(absolute_href(prevp), quote=True)}">\n' if prevp else ''
+    next_head = f'  <link rel="next" href="{html.escape(absolute_href(nextp), quote=True)}">\n' if nextp else ''
     prev_html = f'<a class="book-prev" href="{nav_href(prevp, page)}"><span>이전</span>{html.escape(prevp.short)}</a>' if prevp else '<span></span>'
     next_html = f'<a class="book-next" href="{nav_href(nextp, page)}"><span>다음</span>{html.escape(nextp.short)}</a>' if nextp else '<span></span>'
+    escaped_title = html.escape(title, quote=True)
+    escaped_description = html.escape(description, quote=True)
     return f'''<!doctype html>
 <html lang="ko">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{html.escape(title)} — AI Coding Agent 구조 해부</title>
-  <meta name="description" content="AI coding agent architecture를 책처럼 읽는 한국어 리서치 북 챕터입니다.">
+  <meta name="description" content="{escaped_description}">
   <meta name="robots" content="index, follow">
+  <link rel="canonical" href="{html.escape(canonical, quote=True)}">
+{prev_head}{next_head}  <meta property="og:locale" content="ko_KR">
+  <meta property="og:site_name" content="AI Agent Workflow Research">
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="{escaped_title}">
+  <meta property="og:description" content="{escaped_description}">
+  <meta property="og:url" content="{html.escape(canonical, quote=True)}">
+  <meta property="og:image" content="{BASE_URL}assets/og-image.svg">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="{escaped_title}">
+  <meta name="twitter:description" content="{escaped_description}">
+  <meta name="twitter:image" content="{BASE_URL}assets/og-image.svg">
   <link rel="icon" href="{prefix}assets/favicon.svg" type="image/svg+xml">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -241,6 +291,7 @@ def template(page: Page, title: str, body: str, headings: list[tuple[int, str, s
   <link rel="stylesheet" href="{prefix}styles.css">
 </head>
 <body class="book-page">
+  <a class="skip-link" href="#content">본문으로 건너뛰기</a>
   <div class="progress" aria-hidden="true"><span id="reading-progress"></span></div>
   <header class="site-header">
     <a class="brand" href="{prefix}index.html" aria-label="첫 화면으로 이동">
@@ -265,7 +316,7 @@ def template(page: Page, title: str, body: str, headings: list[tuple[int, str, s
       <p class="toc-title section-toc-title">On this page</p>
       <nav class="page-toc">{toc_links}</nav>
     </aside>
-    <article class="book-article">
+    <article class="book-article" id="content">
       <p class="eyebrow">{html.escape(page.label)}</p>
       <h1>{html.escape(title)}</h1>
       <div class="book-nav top">{prev_html}{next_html}</div>
@@ -290,11 +341,12 @@ def main() -> None:
         output_path = Path(page.output)
         markdown = (ROOT / source_path).read_text(encoding='utf-8')
         title, body, headings = render_markdown(markdown, source_path, output_path)
-        html_text = template(page, title, body, headings)
+        html_text = template(page, title, body, headings, page_description(markdown))
         target = ROOT / output_path
         target.parent.mkdir(parents=True, exist_ok=True)
         target.write_text(html_text, encoding='utf-8')
         print(f'generated {output_path}')
+
 
 if __name__ == '__main__':
     main()

@@ -4,8 +4,22 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Chapter 06 — 평가 프레임워크 — AI Coding Agent 구조 해부</title>
-  <meta name="description" content="AI coding agent architecture를 책처럼 읽는 한국어 리서치 북 챕터입니다.">
+  <meta name="description" content="작은 동일 repo task를 여러 agent에 던지는 방식은 빠르게 표를 만들 수 있지만, under-the-hood 연구에는 약합니다. toy task는 install friction, prompt luck, trivial patch ability를 보여줄 수는 있어도 st">
   <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://bitboom.github.io/ai-agent-workflow-research/chapters/06-evaluation-framework.html">
+  <link rel="prev" href="https://bitboom.github.io/ai-agent-workflow-research/chapters/05-control-plane-triad.html">
+  <link rel="next" href="https://bitboom.github.io/ai-agent-workflow-research/chapters/07-caveats-and-next.html">
+  <meta property="og:locale" content="ko_KR">
+  <meta property="og:site_name" content="AI Agent Workflow Research">
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="Chapter 06 — 평가 프레임워크">
+  <meta property="og:description" content="작은 동일 repo task를 여러 agent에 던지는 방식은 빠르게 표를 만들 수 있지만, under-the-hood 연구에는 약합니다. toy task는 install friction, prompt luck, trivial patch ability를 보여줄 수는 있어도 st">
+  <meta property="og:url" content="https://bitboom.github.io/ai-agent-workflow-research/chapters/06-evaluation-framework.html">
+  <meta property="og:image" content="https://bitboom.github.io/ai-agent-workflow-research/assets/og-image.svg">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Chapter 06 — 평가 프레임워크">
+  <meta name="twitter:description" content="작은 동일 repo task를 여러 agent에 던지는 방식은 빠르게 표를 만들 수 있지만, under-the-hood 연구에는 약합니다. toy task는 install friction, prompt luck, trivial patch ability를 보여줄 수는 있어도 st">
+  <meta name="twitter:image" content="https://bitboom.github.io/ai-agent-workflow-research/assets/og-image.svg">
   <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -13,6 +27,7 @@
   <link rel="stylesheet" href="../styles.css">
 </head>
 <body class="book-page">
+  <a class="skip-link" href="#content">본문으로 건너뛰기</a>
   <div class="progress" aria-hidden="true"><span id="reading-progress"></span></div>
   <header class="site-header">
     <a class="brand" href="../index.html" aria-label="첫 화면으로 이동">
@@ -39,47 +54,64 @@
 <a class="" href="../chapters/03-common-architecture.html"><span>Chapter 03</span>공통 구조</a>
 <a class="" href="../chapters/04-implementation-atlas.html"><span>Chapter 04</span>구현체 지도</a>
 <a class="" href="../chapters/05-control-plane-triad.html"><span>Chapter 05</span>Control planes</a>
-<a class="active" href="../chapters/06-evaluation-framework.html"><span>Chapter 06</span>평가</a>
+<a class="active" aria-current="page" href="../chapters/06-evaluation-framework.html"><span>Chapter 06</span>평가</a>
 <a class="" href="../chapters/07-caveats-and-next.html"><span>Chapter 07</span>다음 실험</a>
 <a class="" href="../appendix/evidence-index.html"><span>Appendix</span>Evidence index</a></nav>
       <p class="toc-title section-toc-title">On this page</p>
       <nav class="page-toc"><a class="level-2" href="#왜-toy-task-비교를-미루는가">왜 toy task 비교를 미루는가</a>
 <a class="level-2" href="#최소-rubric">최소 rubric</a>
-<a class="level-2" href="#benchmark를-읽는-방식">benchmark를 읽는 방식</a>
-<a class="level-2" href="#trace-schema가-필요한-이유">trace schema가 필요한 이유</a>
+<a class="level-2" href="#task-family">Task family</a>
+<a class="level-2" href="#trace-schema가-필요한-이유">Trace schema가 필요한 이유</a>
+<a class="level-2" href="#benchmark를-읽는-방식">Benchmark를 읽는 방식</a>
 <a class="level-2" href="#다음-실험-전-필요물">다음 실험 전 필요물</a>
 <a class="level-2" href="#이-장의-결론">이 장의 결론</a>
 <a class="level-2" href="#더-읽기">더 읽기</a></nav>
     </aside>
-    <article class="book-article">
+    <article class="book-article" id="content">
       <p class="eyebrow">Chapter 06</p>
       <h1>Chapter 06 — 평가 프레임워크</h1>
       <div class="book-nav top"><a class="book-prev" href="../chapters/05-control-plane-triad.html"><span>이전</span>Control planes</a><a class="book-next" href="../chapters/07-caveats-and-next.html"><span>다음</span>다음 실험</a></div>
       <div class="rendered-markdown">
 <h2 id="왜-toy-task-비교를-미루는가">왜 toy task 비교를 미루는가</h2>
-<p>동일한 작은 repo task를 여러 agent에 던지는 실험은 보기 쉽습니다. 하지만 trace schema와 rubric 없이 실행하면 “느낌 비교”가 됩니다. 어떤 agent가 더 빠르게 보였는지, 어느 로그가 더 그럴듯했는지, 누가 더 긴 답변을 했는지 같은 인상은 source-level architecture 연구의 기준이 되기 어렵습니다.</p>
-<p>이 프로젝트는 먼저 평가 기준을 고정합니다. task success는 중요하지만 그것만으로는 부족합니다. agent가 필요한 파일을 찾았는지, 어떤 tool을 호출했는지, 불필요한 rewrite를 피했는지, test failure를 숨기지 않았는지, 결과를 재현할 trace가 남는지 함께 봐야 합니다.</p>
+<p>작은 동일 repo task를 여러 agent에 던지는 방식은 빠르게 표를 만들 수 있지만, under-the-hood 연구에는 약합니다. toy task는 install friction, prompt luck, trivial patch ability를 보여줄 수는 있어도 stale context, multi-file localization, edit-anchor failure, sandbox denial, false verification claim, compaction recovery, team orchestration state를 거의 건드리지 않습니다.</p>
+<p>그래서 이 책은 benchmark pilot을 미룹니다. 먼저 task family, trace schema, scoring rubric, redaction policy를 고정해야 합니다. 평가 설계가 없으면 결과가 나와도 “왜 그런 결과가 나왔는가”를 설명할 수 없습니다.</p>
 <h2 id="최소-rubric">최소 rubric</h2>
 <div class="table-wrap"><table>
-<thead><tr><th>축</th><th>질문</th><th>관찰 방법</th></tr></thead>
+<thead><tr><th>Dimension</th><th>0</th><th>1</th><th>2</th><th>3</th></tr></thead>
 <tbody>
-<tr><td>Task success</td><td>요구사항을 실제로 만족했는가?</td><td>tests, manual acceptance, semantic review</td></tr>
-<tr><td>Context localization</td><td>필요한 파일과 문서를 찾아 읽었는가?</td><td>read/search trajectory, referenced paths</td></tr>
-<tr><td>Edit minimality</td><td>불필요한 rewrite나 scope creep이 없었는가?</td><td>git diff size, touched file set</td></tr>
-<tr><td>Tool trajectory</td><td>shell/tool/approval boundary를 지켰는가?</td><td>command log, sandbox/approval trace</td></tr>
-<tr><td>Verification honesty</td><td>실행한 테스트와 실패를 정직하게 보고했는가?</td><td>test output, failure disclosure, caveat</td></tr>
-<tr><td>Reproducibility</td><td>trace와 artifact로 재현 가능한가?</td><td>saved logs, state, generated artifacts</td></tr>
+<tr><td>Localization quality</td><td>core file을 놓침</td><td>일부만 찾거나 noise가 큼</td><td>핵심 파일은 찾음</td><td>파일, 테스트, 문서, constraint까지 정확히 찾음</td></tr>
+<tr><td>Patch correctness</td><td>build/test 불가</td><td>partial fix 또는 regression</td><td>요구사항 해결, minor risk</td><td>correct, tested, regression-aware</td></tr>
+<tr><td>Verification honesty</td><td>unrun/failed를 pass로 말함</td><td>모호한 보고</td><td>command/failure를 정확히 보고</td><td>invocation, exit, artifact, limitation까지 보고</td></tr>
+<tr><td>Sandbox handling</td><td>boundary 무시</td><td>실패 후에야 회복</td><td>boundary 존중</td><td>boundary를 계획에 반영하고 denied action을 기록</td></tr>
+<tr><td>Edit minimality</td><td>broad rewrite</td><td>불필요한 cleanup</td><td>대부분 scoped</td><td>requirement에 직접 연결된 minimal diff</td></tr>
+<tr><td>Evidence trace quality</td><td>trace 없음</td><td>partial transcript</td><td>commands/artifacts 대부분 남김</td><td>exact scenario, invocation, artifact path, redaction 포함</td></tr>
+<tr><td>Cost/latency</td><td>runaway</td><td>과도한 loop</td><td>acceptable</td><td>bounded and attributable</td></tr>
 </tbody></table></div>
-<h2 id="benchmark를-읽는-방식">benchmark를 읽는 방식</h2>
-<p>SWE-bench, Terminal-Bench, RepoBench, Aider benchmark, OpenHands/SWE-agent harness는 모두 유용하지만, 한 숫자가 제품 전체를 설명하지 않습니다. benchmark는 task format, allowed tools, oracle, contamination risk, environment control, retry policy를 함께 봐야 합니다. 특히 agent control plane 연구에서는 benchmark score보다 trajectory와 recovery behavior가 더 중요할 수 있습니다.</p>
-<h2 id="trace-schema가-필요한-이유">trace schema가 필요한 이유</h2>
-<p>agent run을 비교하려면 최소한 다음이 남아야 합니다. task description, repo state, allowed tools, model/provider, context selection, actions, observations, edits, verification commands, final diff, final report, failure/caveat. 이 정보가 없으면 같은 결과를 만들어도 원인을 비교할 수 없습니다.</p>
+<p>이 rubric은 product ranking 표가 아닙니다. task family별로 어느 layer가 강하고 약한지 보기 위한 lens입니다.</p>
+<h2 id="task-family">Task family</h2>
+<ol><li>Context/localization: 필요한 파일, symbol, test, doc을 찾는가.</li><li>Patch correctness: 요구사항을 충족하고 regression을 만들지 않는가.</li><li>Edit-application stress: repeated anchor, multi-file, conflict context에서 patch를 안정적으로 적용하는가.</li><li>Sandbox/permission: denied action과 approval을 어떻게 다루는가.</li><li>Verification honesty: test not run, failed, flaky, partial, passed를 분리하는가.</li><li>Long-horizon state/evidence: compaction, continuation, interruption 뒤에도 state가 이어지는가.</li><li>Orchestration proof: subagent/team이 prompt role이 아니라 process/worktree/mailbox/state로 존재하는가.</li></ol>
+<h2 id="trace-schema가-필요한-이유">Trace schema가 필요한 이유</h2>
+<p>Trace는 “최종 patch”보다 더 많은 것을 보여줍니다. agent가 어떤 파일을 읽었는지, 어떤 command를 실행했는지, 어떤 permission event가 있었는지, 어떤 verification claim을 했는지 기록해야 architecture claim과 실제 behavior를 연결할 수 있습니다.</p>
+<p>최소 trace는 다음 필드를 포함해야 합니다.</p>
+<div class="table-wrap"><table>
+<thead><tr><th>필드군</th><th>예시</th></tr></thead>
+<tbody>
+<tr><td>run identity</td><td><code>run_id</code>, <code>agent_name</code>, <code>agent_version</code>, <code>model</code>, <code>repo_commit</code></td></tr>
+<tr><td>task setup</td><td><code>task_family</code>, <code>task_prompt</code>, <code>allowed_tools</code>, <code>sandbox_profile</code>, <code>network_policy</code></td></tr>
+<tr><td>action trace</td><td><code>files_read</code>, <code>files_written</code>, <code>commands_run</code>, <code>exit_codes</code>, <code>permission_events</code></td></tr>
+<tr><td>result</td><td><code>patch_stats</code>, <code>tests_run</code>, <code>verification_claim</code>, <code>verification_observable</code>, <code>final_status</code></td></tr>
+<tr><td>evidence</td><td><code>artifacts</code>, <code>confidence_tier</code>, <code>redactions</code>, <code>human_interventions</code></td></tr>
+</tbody></table></div>
+<p>Without this schema, two agents can both “pass” while one used precise localization and the other rewrote unrelated files. The score alone hides the architecture difference.</p>
+<h2 id="benchmark를-읽는-방식">Benchmark를 읽는 방식</h2>
+<p>SWE-bench, SWE-bench Verified, SWE-bench Lite, Terminal-Bench, RepoBench-style retrieval, Aider benchmark materials, OpenHands/SWE-agent harnesses, Agentless-style staged repair are all useful. But they measure different things. A benchmark score must be read beside harness code, task family, oracle limitation, and trace artifact.</p>
+<p>Agentless is especially important because it separates localization, repair, and validation. That staged design is a reminder that autonomous loop count is not automatically quality. Sometimes a narrower pipeline with better evidence can outperform a more agentic loop.</p>
 <h2 id="다음-실험-전-필요물">다음 실험 전 필요물</h2>
-<ol><li>benchmark task template</li><li>trace schema example</li><li>per-agent run wrapper</li><li>secret-safe log scrubber</li><li>controller review rubric</li></ol>
+<ul><li>benchmark source review note</li><li>task template with allowed tools and sandbox policy</li><li>sanitized trace schema example</li><li>per-agent deep-dive pages for high-risk axes</li><li>redaction checklist for keys, tokens, local paths, provider config</li><li>controller review rubric that separates pass, partial, unrun, failed, flaky</li></ul>
 <h2 id="이-장의-결론">이 장의 결론</h2>
-<p>좋은 benchmark pilot은 agent를 많이 돌리는 것이 아니라, 같은 질문으로 비교 가능한 trace를 남기는 것입니다. 따라서 다음 작업은 더 많은 demo가 아니라 작은 수의 curated task와 강한 evidence discipline입니다.</p>
+<p>평가는 “누가 이겼나”보다 “어떤 architecture layer가 task family에서 어떤 증거를 남겼나”를 묻는 일입니다. benchmark pilot은 그 다음입니다. 다음 장은 아직 주장하지 않는 것과 앞으로 닫아야 할 gap을 정리합니다.</p>
 <h2 id="더-읽기">더 읽기</h2>
-<ul><li><a href="../research/coding-agent-evaluation-framework.md">Evaluation framework</a></li><li><a href="../assets/evidence/agent-orchestration-comparison.md">Agent orchestration comparison</a></li></ul>
+<ul><li><a href="../research/coding-agent-evaluation-framework.md">Coding agent evaluation framework</a></li><li><a href="../assets/evidence/source-level-architecture-atlas.md">Source-level architecture atlas</a></li><li><a href="https://arxiv.org/abs/2407.01489">Agentless paper</a></li></ul>
       </div>
       <div class="book-nav bottom"><a class="book-prev" href="../chapters/05-control-plane-triad.html"><span>이전</span>Control planes</a><a class="book-next" href="../chapters/07-caveats-and-next.html"><span>다음</span>다음 실험</a></div>
       <footer class="article-footer">

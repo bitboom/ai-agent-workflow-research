@@ -1,37 +1,54 @@
 # Chapter 03 — 공통 아키텍처
 
-[이전: Agent 분류](02-agent-taxonomy.html) · [목차](index.html) · [다음: 구현체별 읽기 지도](04-implementation-atlas.html)
+[← Agent 분류](02-agent-taxonomy.md) · [다음: 구현체별 읽기 지도 →](04-implementation-atlas.md)
 
 ## 여덟 개 층
 
-제품의 표면은 다르지만 coding agent를 source-level로 읽으면 반복되는 층이 있습니다. 이 장의 목적은 모든 제품을 하나의 그림으로 강제로 맞추는 것이 아니라, 각 구현체를 읽을 때 빠뜨리기 쉬운 책임 영역을 체크리스트로 만드는 것입니다.
+제품 UI는 다르지만 source-level로 내려가면 반복되는 축이 있습니다. 이 책은 coding agent를 다음 여덟 층으로 읽습니다.
 
-| 층 | 질문 | 실패 패턴 |
+| 층 | 책임 | 실패하면 생기는 일 |
 | --- | --- | --- |
-| Model client / router | provider, streaming, retry, token budget, model choice는 어디서 결정되는가? | 잘못된 model routing, token truncation, retry 폭주 |
-| Prompt / context assembly | instructions, repo file, search result, memory, failing test log가 어떻게 합쳐지는가? | stale context, irrelevant file stuffing, missing test log |
-| Repo index / code graph | lexical search, AST, LSP, vector index, repo map 중 무엇을 쓰는가? | symbol mismatch, old index, generated file noise |
-| Planning / tool loop | plan, act, observe, revise, stop condition은 어디에 있는가? | endless loop, premature stop, plan/action mismatch |
-| Edit / execution | patch, search/replace, whole-file rewrite, shell, MCP/browser tool은 어떻게 실행되는가? | broad rewrite, unsafe shell, broken patch anchor |
-| Sandbox / approval | filesystem, network, shell, human approval boundary는 무엇인가? | approval bypass, blocked command, environment drift |
-| Verification / evidence | tests, lint, build, benchmark, reviewer, evidence ledger가 남는가? | unrun tests, hidden failures, unverifiable success claim |
-| Memory / state | transcript, checkpoint, workflow artifact, long-term project memory가 어디에 남는가? | lost context, unrecoverable session, stale memory |
+| Model client / router | provider, streaming, retry, token budget, model selection | routing drift, latency/cost 폭증, 잘못된 capability 선택 |
+| Prompt / context assembly | system rule, repo files, memory, tool output, failing test log 선택 | 핵심 파일 누락, stale instruction, context stuffing |
+| Repo index / code graph | lexical search, AST/LSP, vector index, repo map | 관련 symbol 미발견, 오래된 index, remote workspace mismatch |
+| Planning / tool loop | plan 생성, action 선택, observation 반영, stop condition | 반복 loop, premature final, task decomposition 실패 |
+| Edit / execution | patch, search/replace, whole-file rewrite, shell/browser/MCP tool 실행 | malformed diff, broad rewrite, unsafe command |
+| Sandbox / approval | filesystem/network/shell 권한, human approval, enterprise policy | approval bypass, denied action recovery 실패, cleanup 누락 |
+| Verification / evidence | test/lint/build/benchmark/reviewer/evidence ledger | unrun test를 pass로 주장, flaky/partial 결과 은폐 |
+| Memory / durable state | session, checkpoint, skill, long-term memory, workflow artifact | compaction 후 맥락 상실, resume/recovery 실패 |
 
 ## 읽는 요령
 
-어떤 agent가 실패했을 때 모델만 탓하기 전에 위 층을 따라 내려가야 합니다. context가 stale했는지, patch anchor가 정확했는지, shell command가 실제로 실행됐는지, verification result가 문서화됐는지, session state가 복구 가능한지 확인해야 합니다.
+한 agent가 실패했을 때 바로 모델 탓으로 돌리지 않습니다. 먼저 어느 층에서 실패했는지 분리합니다. 예를 들어 patch가 적용되지 않았다면 model reasoning 문제일 수도 있지만, edit format, anchor selection, handler routing, file protection, approval policy 문제일 수도 있습니다.
 
-예를 들어 “테스트를 통과했다”는 claim은 verification 층의 claim입니다. 그러나 test command가 실제로 실행됐는지 확인되지 않았다면 runtime-confirmed가 아닙니다. 실행은 됐지만 로그나 artifact가 남지 않았다면 reproducibility가 약합니다. 실행 후 `.gjc` ledger나 `.omo` synthesis가 남는다면 artifact-backed claim으로 승격할 수 있습니다.
+Source atlas는 이 분리를 실제 파일 경로로 연결합니다. Codex는 `codex-rs/core/src/tools/router.rs`, `handlers/apply_patch.rs`, `sandboxing` 계열을 분리해서 볼 수 있고, Aider는 `base_coder.py`, `repomap.py`, edit-format coder들이 핵심입니다. SWE-agent는 `agents.py`, `swe_env.py`, `ToolHandler`, trajectory가 evaluation-friendly 구조를 만듭니다. Roo와 Continue는 IDE extension state, context management, tool policy, remote terminal routing을 봐야 합니다.
 
 ## UI보다 내부 경로를 먼저 본다
 
-동일한 UX 문구라도 구현 경로는 다를 수 있습니다. “context-aware”라는 문구는 IDE active editor state, vector index, RepoMap, grep search, LSP graph, long-term memory 중 무엇을 뜻하는지 분해해야 합니다. “safe execution”도 human approval, sandboxed filesystem, network policy, dry-run mode, command allowlist 중 어느 boundary인지 확인해야 합니다.
+겉으로 같은 “파일 수정”이라도 내부 경로는 다릅니다.
+
+| 사용자 행동 | 내부적으로 확인할 질문 |
+| --- | --- |
+| “이 버그 고쳐줘” | issue text가 어떤 prompt/context로 변환됐는가 |
+| “파일을 수정했다” | patch handler인가, whole-file rewrite인가, editor diff provider인가 |
+| “테스트했다” | 정확히 어떤 command, exit code, environment였는가 |
+| “팀이 작업했다” | 실제 worker process, worktree, mailbox, ledger가 있는가 |
+| “MCP를 지원한다” | manifest 선언인가, 실제 runtime-callable tool인가 |
+
+이 차이를 기록해야 architecture atlas가 됩니다. 단순 기능표는 “테스트 지원 O”라고 적지만, source-level atlas는 test command가 어디서 실행되고, 실패 결과가 다음 turn context에 어떻게 들어가는지 묻습니다.
+
+## Evidence layer와 architecture layer를 섞지 않는다
+
+공통 아키텍처의 각 층은 서로 다른 evidence를 요구합니다. Source path는 구현 존재를 말하고, runtime smoke는 command 실행을 말하고, artifact replay는 state layout과 durable behavior를 말합니다. 세 가지는 모두 중요하지만 서로 대체할 수 없습니다.
+
+Gajae-Code 예시가 이를 잘 보여줍니다. source에는 `ultragoal-runtime.ts`, `ralplan-runtime.ts`, `team-runtime.ts`가 있습니다. runtime smoke는 `gjc/0.7.3` command가 실행됨을 보여줍니다. workflow replay는 `.gjc/_session-*` 아래 specs, plans, ultragoal ledger, team dry-run state가 생성됨을 보여줍니다. 그러나 이 셋을 모두 합쳐도 live team recovery나 Hermes bridge behavior를 자동으로 증명하지는 않습니다.
 
 ## 이 장의 결론
 
-좋은 agent 분석은 하나의 demo 영상보다 이 여덟 층이 얼마나 공개·검증·재현 가능한지 확인하는 일입니다. 다음 장에서는 이 체크리스트를 구현체별로 어디에 적용할지 정리합니다.
+좋은 agent 분석은 하나의 box diagram으로 끝나지 않습니다. 각 layer가 어떤 source path에 있고, 어떤 runtime proof가 있으며, 어떤 artifact가 남고, 어떤 failure mode를 갖는지 이어서 읽어야 합니다. 다음 장에서는 이 여덟 층을 각 구현체에 적용하는 읽기 지도를 만듭니다.
 
 ## 더 읽기
 
 - [Source-level architecture atlas](../assets/evidence/source-level-architecture-atlas.md)
-- [Coding agent source map](../research/coding-agent-source-map.md)
+- [Public failure-pattern corpus draft](../assets/evidence/source-level-architecture-atlas.md#public-failure-pattern-corpus-draft)
+- [Evaluation framework](../research/coding-agent-evaluation-framework.md)

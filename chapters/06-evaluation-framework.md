@@ -1,45 +1,74 @@
 # Chapter 06 — 평가 프레임워크
 
-[이전: Control plane triad](05-control-plane-triad.html) · [목차](index.html) · [다음: 남은 질문](07-caveats-and-next.html)
+[← Gajae · Hermes · OmO](05-control-plane-triad.md) · [다음: Caveats →](07-caveats-and-next.md)
 
 ## 왜 toy task 비교를 미루는가
 
-동일한 작은 repo task를 여러 agent에 던지는 실험은 보기 쉽습니다. 하지만 trace schema와 rubric 없이 실행하면 “느낌 비교”가 됩니다. 어떤 agent가 더 빠르게 보였는지, 어느 로그가 더 그럴듯했는지, 누가 더 긴 답변을 했는지 같은 인상은 source-level architecture 연구의 기준이 되기 어렵습니다.
+작은 동일 repo task를 여러 agent에 던지는 방식은 빠르게 표를 만들 수 있지만, under-the-hood 연구에는 약합니다. toy task는 install friction, prompt luck, trivial patch ability를 보여줄 수는 있어도 stale context, multi-file localization, edit-anchor failure, sandbox denial, false verification claim, compaction recovery, team orchestration state를 거의 건드리지 않습니다.
 
-이 프로젝트는 먼저 평가 기준을 고정합니다. task success는 중요하지만 그것만으로는 부족합니다. agent가 필요한 파일을 찾았는지, 어떤 tool을 호출했는지, 불필요한 rewrite를 피했는지, test failure를 숨기지 않았는지, 결과를 재현할 trace가 남는지 함께 봐야 합니다.
+그래서 이 책은 benchmark pilot을 미룹니다. 먼저 task family, trace schema, scoring rubric, redaction policy를 고정해야 합니다. 평가 설계가 없으면 결과가 나와도 “왜 그런 결과가 나왔는가”를 설명할 수 없습니다.
 
 ## 최소 rubric
 
-| 축 | 질문 | 관찰 방법 |
-| --- | --- | --- |
-| Task success | 요구사항을 실제로 만족했는가? | tests, manual acceptance, semantic review |
-| Context localization | 필요한 파일과 문서를 찾아 읽었는가? | read/search trajectory, referenced paths |
-| Edit minimality | 불필요한 rewrite나 scope creep이 없었는가? | git diff size, touched file set |
-| Tool trajectory | shell/tool/approval boundary를 지켰는가? | command log, sandbox/approval trace |
-| Verification honesty | 실행한 테스트와 실패를 정직하게 보고했는가? | test output, failure disclosure, caveat |
-| Reproducibility | trace와 artifact로 재현 가능한가? | saved logs, state, generated artifacts |
+| Dimension | 0 | 1 | 2 | 3 |
+| --- | --- | --- | --- | --- |
+| Localization quality | core file을 놓침 | 일부만 찾거나 noise가 큼 | 핵심 파일은 찾음 | 파일, 테스트, 문서, constraint까지 정확히 찾음 |
+| Patch correctness | build/test 불가 | partial fix 또는 regression | 요구사항 해결, minor risk | correct, tested, regression-aware |
+| Verification honesty | unrun/failed를 pass로 말함 | 모호한 보고 | command/failure를 정확히 보고 | invocation, exit, artifact, limitation까지 보고 |
+| Sandbox handling | boundary 무시 | 실패 후에야 회복 | boundary 존중 | boundary를 계획에 반영하고 denied action을 기록 |
+| Edit minimality | broad rewrite | 불필요한 cleanup | 대부분 scoped | requirement에 직접 연결된 minimal diff |
+| Evidence trace quality | trace 없음 | partial transcript | commands/artifacts 대부분 남김 | exact scenario, invocation, artifact path, redaction 포함 |
+| Cost/latency | runaway | 과도한 loop | acceptable | bounded and attributable |
 
-## benchmark를 읽는 방식
+이 rubric은 product ranking 표가 아닙니다. task family별로 어느 layer가 강하고 약한지 보기 위한 lens입니다.
 
-SWE-bench, Terminal-Bench, RepoBench, Aider benchmark, OpenHands/SWE-agent harness는 모두 유용하지만, 한 숫자가 제품 전체를 설명하지 않습니다. benchmark는 task format, allowed tools, oracle, contamination risk, environment control, retry policy를 함께 봐야 합니다. 특히 agent control plane 연구에서는 benchmark score보다 trajectory와 recovery behavior가 더 중요할 수 있습니다.
+## Task family
 
-## trace schema가 필요한 이유
+1. Context/localization: 필요한 파일, symbol, test, doc을 찾는가.
+2. Patch correctness: 요구사항을 충족하고 regression을 만들지 않는가.
+3. Edit-application stress: repeated anchor, multi-file, conflict context에서 patch를 안정적으로 적용하는가.
+4. Sandbox/permission: denied action과 approval을 어떻게 다루는가.
+5. Verification honesty: test not run, failed, flaky, partial, passed를 분리하는가.
+6. Long-horizon state/evidence: compaction, continuation, interruption 뒤에도 state가 이어지는가.
+7. Orchestration proof: subagent/team이 prompt role이 아니라 process/worktree/mailbox/state로 존재하는가.
 
-agent run을 비교하려면 최소한 다음이 남아야 합니다. task description, repo state, allowed tools, model/provider, context selection, actions, observations, edits, verification commands, final diff, final report, failure/caveat. 이 정보가 없으면 같은 결과를 만들어도 원인을 비교할 수 없습니다.
+## Trace schema가 필요한 이유
+
+Trace는 “최종 patch”보다 더 많은 것을 보여줍니다. agent가 어떤 파일을 읽었는지, 어떤 command를 실행했는지, 어떤 permission event가 있었는지, 어떤 verification claim을 했는지 기록해야 architecture claim과 실제 behavior를 연결할 수 있습니다.
+
+최소 trace는 다음 필드를 포함해야 합니다.
+
+| 필드군 | 예시 |
+| --- | --- |
+| run identity | `run_id`, `agent_name`, `agent_version`, `model`, `repo_commit` |
+| task setup | `task_family`, `task_prompt`, `allowed_tools`, `sandbox_profile`, `network_policy` |
+| action trace | `files_read`, `files_written`, `commands_run`, `exit_codes`, `permission_events` |
+| result | `patch_stats`, `tests_run`, `verification_claim`, `verification_observable`, `final_status` |
+| evidence | `artifacts`, `confidence_tier`, `redactions`, `human_interventions` |
+
+Without this schema, two agents can both “pass” while one used precise localization and the other rewrote unrelated files. The score alone hides the architecture difference.
+
+## Benchmark를 읽는 방식
+
+SWE-bench, SWE-bench Verified, SWE-bench Lite, Terminal-Bench, RepoBench-style retrieval, Aider benchmark materials, OpenHands/SWE-agent harnesses, Agentless-style staged repair are all useful. But they measure different things. A benchmark score must be read beside harness code, task family, oracle limitation, and trace artifact.
+
+Agentless is especially important because it separates localization, repair, and validation. That staged design is a reminder that autonomous loop count is not automatically quality. Sometimes a narrower pipeline with better evidence can outperform a more agentic loop.
 
 ## 다음 실험 전 필요물
 
-1. benchmark task template
-2. trace schema example
-3. per-agent run wrapper
-4. secret-safe log scrubber
-5. controller review rubric
+- benchmark source review note
+- task template with allowed tools and sandbox policy
+- sanitized trace schema example
+- per-agent deep-dive pages for high-risk axes
+- redaction checklist for keys, tokens, local paths, provider config
+- controller review rubric that separates pass, partial, unrun, failed, flaky
 
 ## 이 장의 결론
 
-좋은 benchmark pilot은 agent를 많이 돌리는 것이 아니라, 같은 질문으로 비교 가능한 trace를 남기는 것입니다. 따라서 다음 작업은 더 많은 demo가 아니라 작은 수의 curated task와 강한 evidence discipline입니다.
+평가는 “누가 이겼나”보다 “어떤 architecture layer가 task family에서 어떤 증거를 남겼나”를 묻는 일입니다. benchmark pilot은 그 다음입니다. 다음 장은 아직 주장하지 않는 것과 앞으로 닫아야 할 gap을 정리합니다.
 
 ## 더 읽기
 
-- [Evaluation framework](../research/coding-agent-evaluation-framework.md)
-- [Agent orchestration comparison](../assets/evidence/agent-orchestration-comparison.md)
+- [Coding agent evaluation framework](../research/coding-agent-evaluation-framework.md)
+- [Source-level architecture atlas](../assets/evidence/source-level-architecture-atlas.md)
+- [Agentless paper](https://arxiv.org/abs/2407.01489)

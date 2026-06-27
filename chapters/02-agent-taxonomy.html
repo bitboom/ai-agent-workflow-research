@@ -4,8 +4,22 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Chapter 02 — Agent 분류 — AI Coding Agent 구조 해부</title>
-  <meta name="description" content="AI coding agent architecture를 책처럼 읽는 한국어 리서치 북 챕터입니다.">
+  <meta name="description" content="Agent를 나눌 때 가장 먼저 볼 것은 UI가 아니라 loop의 위치입니다. loop가 editor extension 안에서 도는지, CLI process 안에서 도는지, benchmark runner가 container를 몰고 있는지, 별도 coordinator가 workt">
   <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://bitboom.github.io/ai-agent-workflow-research/chapters/02-agent-taxonomy.html">
+  <link rel="prev" href="https://bitboom.github.io/ai-agent-workflow-research/chapters/01-research-question.html">
+  <link rel="next" href="https://bitboom.github.io/ai-agent-workflow-research/chapters/03-common-architecture.html">
+  <meta property="og:locale" content="ko_KR">
+  <meta property="og:site_name" content="AI Agent Workflow Research">
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="Chapter 02 — Agent 분류">
+  <meta property="og:description" content="Agent를 나눌 때 가장 먼저 볼 것은 UI가 아니라 loop의 위치입니다. loop가 editor extension 안에서 도는지, CLI process 안에서 도는지, benchmark runner가 container를 몰고 있는지, 별도 coordinator가 workt">
+  <meta property="og:url" content="https://bitboom.github.io/ai-agent-workflow-research/chapters/02-agent-taxonomy.html">
+  <meta property="og:image" content="https://bitboom.github.io/ai-agent-workflow-research/assets/og-image.svg">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Chapter 02 — Agent 분류">
+  <meta name="twitter:description" content="Agent를 나눌 때 가장 먼저 볼 것은 UI가 아니라 loop의 위치입니다. loop가 editor extension 안에서 도는지, CLI process 안에서 도는지, benchmark runner가 container를 몰고 있는지, 별도 coordinator가 workt">
+  <meta name="twitter:image" content="https://bitboom.github.io/ai-agent-workflow-research/assets/og-image.svg">
   <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -13,6 +27,7 @@
   <link rel="stylesheet" href="../styles.css">
 </head>
 <body class="book-page">
+  <a class="skip-link" href="#content">본문으로 건너뛰기</a>
   <div class="progress" aria-hidden="true"><span id="reading-progress"></span></div>
   <header class="site-header">
     <a class="brand" href="../index.html" aria-label="첫 화면으로 이동">
@@ -35,7 +50,7 @@
       <p class="toc-title">Book</p>
       <nav class="chapter-nav"><a class="" href="../chapters/index.html"><span>Contents</span>목차</a>
 <a class="" href="../chapters/01-research-question.html"><span>Chapter 01</span>연구 질문</a>
-<a class="active" href="../chapters/02-agent-taxonomy.html"><span>Chapter 02</span>Agent 분류</a>
+<a class="active" aria-current="page" href="../chapters/02-agent-taxonomy.html"><span>Chapter 02</span>Agent 분류</a>
 <a class="" href="../chapters/03-common-architecture.html"><span>Chapter 03</span>공통 구조</a>
 <a class="" href="../chapters/04-implementation-atlas.html"><span>Chapter 04</span>구현체 지도</a>
 <a class="" href="../chapters/05-control-plane-triad.html"><span>Chapter 05</span>Control planes</a>
@@ -47,36 +62,50 @@
 <a class="level-2" href="#여섯-계열">여섯 계열</a>
 <a class="level-2" href="#왜-loop-위치가-중요한가">왜 loop 위치가 중요한가</a>
 <a class="level-2" href="#중요한-구분">중요한 구분</a>
+<a class="level-2" href="#실패-패턴으로-다시-읽기">실패 패턴으로 다시 읽기</a>
 <a class="level-2" href="#이-장의-결론">이 장의 결론</a>
 <a class="level-2" href="#더-읽기">더 읽기</a></nav>
     </aside>
-    <article class="book-article">
+    <article class="book-article" id="content">
       <p class="eyebrow">Chapter 02</p>
       <h1>Chapter 02 — Agent 분류</h1>
       <div class="book-nav top"><a class="book-prev" href="../chapters/01-research-question.html"><span>이전</span>연구 질문</a><a class="book-next" href="../chapters/03-common-architecture.html"><span>다음</span>공통 구조</a></div>
       <div class="rendered-markdown">
 <h2 id="분류-기준">분류 기준</h2>
-<p>coding agent는 feature list보다 <strong>loop가 어디서 돌고 state가 어디에 남는지</strong>로 나누는 편이 정확합니다. “IDE에서 보이는 assistant”와 “CLI에서 repo를 수정하는 agent”와 “tmux/worktree worker를 관리하는 orchestrator”는 모두 코드를 바꿀 수 있지만, failure mode와 evidence가 완전히 다릅니다.</p>
+<p>Agent를 나눌 때 가장 먼저 볼 것은 UI가 아니라 <strong>loop의 위치</strong>입니다. loop가 editor extension 안에서 도는지, CLI process 안에서 도는지, benchmark runner가 container를 몰고 있는지, 별도 coordinator가 worktree와 tmux를 관리하는지에 따라 agent의 장점과 실패 방식이 달라집니다.</p>
+<p>이 분류는 제품 브랜드를 영구히 고정하려는 표가 아닙니다. 하나의 프로젝트가 여러 층을 가질 수 있고, version이 바뀌면 위치도 바뀔 수 있습니다. 따라서 분류의 목적은 “어떤 제품이 어느 칸인가”보다 “어떤 evidence를 요구해야 하는가”를 정하는 데 있습니다.</p>
 <h2 id="여섯-계열">여섯 계열</h2>
 <div class="table-wrap"><table>
-<thead><tr><th>계열</th><th>예시</th><th>핵심 관찰 지점</th></tr></thead>
+<thead><tr><th>계열</th><th>대표 예</th><th>loop/state 위치</th><th>먼저 확인할 것</th></tr></thead>
 <tbody>
-<tr><td>IDE embedded</td><td>Cline, Roo, Continue, Cursor</td><td>editor state, index freshness, diff UX, approval UX</td></tr>
-<tr><td>CLI coding agent</td><td>OpenAI Codex CLI, Aider, Goose, Claude Code</td><td>shell/test loop, patch strategy, sandbox profile</td></tr>
-<tr><td>Repo-local runner</td><td>SWE-agent, OpenHands, Agentless</td><td>issue-to-patch trajectory, benchmark harness, container/runtime</td></tr>
-<tr><td>Workflow orchestrator</td><td>Gajae-Code, LazyCodex/OmO</td><td>plan/review/state/artifact workflow</td></tr>
-<tr><td>Persistent runtime</td><td>Hermes Agent</td><td>memory, cron, delegation, gateway, messaging identity</td></tr>
-<tr><td>Team/multi-agent</td><td>Gajae team, Hermes delegation</td><td>durable queue, worktree/tmux, mailbox, recovery</td></tr>
+<tr><td>IDE embedded</td><td>Cline, Roo, Continue</td><td>editor extension, IDE state, index cache</td><td>active file, index freshness, approval UX, remote workspace routing</td></tr>
+<tr><td>CLI coding agent</td><td>OpenAI Codex CLI, Aider, Goose</td><td>local process, shell, git repo</td><td>tool loop, patch strategy, sandbox, configured test command</td></tr>
+<tr><td>Repo-local runner</td><td>SWE-agent, OpenHands, Agentless-style workflows</td><td>container/runtime/harness, benchmark trajectory</td><td>task reset, action parser, environment control, trajectory schema</td></tr>
+<tr><td>Workflow orchestrator</td><td>Gajae-Code, LazyCodex/OmO</td><td>command layer, plugin/hook, state root</td><td>manifest vs runtime-callability, artifact layout, recovery behavior</td></tr>
+<tr><td>Persistent runtime</td><td>Hermes Agent</td><td>long-running agent runtime, memory, gateway, cron/delegation</td><td>session persistence, toolsets, bridge identity, version drift</td></tr>
+<tr><td>Team/multi-agent</td><td>GJC team, coordinator-worker designs</td><td>queue, worktree/tmux/mailbox/process state</td><td>real worker process, mailbox, conflict handling, cleanup</td></tr>
 </tbody></table></div>
 <h2 id="왜-loop-위치가-중요한가">왜 loop 위치가 중요한가</h2>
-<p>IDE embedded agent는 사용자가 보고 있는 editor state와 selection, diagnostics, workspace index를 자연스럽게 활용합니다. 대신 hidden context가 언제 stale해졌는지 독자가 알기 어렵습니다. CLI coding agent는 shell/test loop를 재현하기 쉽고 patch가 git diff로 남습니다. 대신 approval policy나 sandbox profile이 실제 tool capability와 맞지 않으면 실패가 생깁니다.</p>
-<p>Repo-local runner는 issue-to-patch trajectory를 연구하기 좋습니다. SWE-agent나 OpenHands 같은 계열은 benchmark harness와 runtime이 분명해 trace를 남기기 좋지만, benchmark task의 oracle과 실제 제품 사용 경험을 혼동하면 안 됩니다. Workflow orchestrator와 persistent runtime은 더 긴 시간축을 다룹니다. 여기서는 “한 번의 patch”보다 durable state, plan handoff, worker recovery, message gateway, cron job이 중요합니다.</p>
+<p>IDE embedded agent는 사용자가 보고 있는 editor state와 강하게 붙어 있습니다. 그래서 UX는 자연스럽지만 hidden context와 stale index가 위험합니다. Continue의 source map은 Redux thunk 기반 stream flow와 codebase indexer를 보여주며, Roo는 task loop, condense, file context tracker, checkpoint가 분리되어 있습니다. 이런 구조에서는 “무슨 모델인가”보다 “어느 파일이 context에 들어갔는가”가 품질을 좌우합니다.</p>
+<p>CLI agent는 local repo와 shell에 가까워서 재현성이 좋습니다. Aider의 <code>RepoMap</code>은 context compression을 명시적으로 보여주는 좋은 예이고, Codex는 tool router, sandbox, apply patch handler가 분리되어 있습니다. 하지만 CLI 계열도 sandbox/approval profile, shell persistence, patch apply failure를 따로 봐야 합니다.</p>
+<p>Runner 계열은 benchmark와 trace에 강합니다. SWE-agent의 trajectory, OpenHands package source의 conversation/event store 같은 구조는 평가에 유리합니다. 반대로 실제 개발 UX와 remote sandbox lifecycle이 별도 문제가 됩니다.</p>
+<p>Workflow orchestrator와 persistent runtime은 단순 coding assistant보다 넓습니다. Gajae-Code는 deep-interview, ralplan, ultragoal, team command가 <code>.gjc</code> artifact를 만들고, Hermes는 memory, toolsets, gateway, cron, delegation으로 session을 넘어갑니다. 이 계열은 “patch를 잘 만들었나”만으로 평가하면 핵심을 놓칩니다.</p>
 <h2 id="중요한-구분">중요한 구분</h2>
-<ul><li>multi-agent role prompt는 orchestration proof가 아닙니다.</li><li>public source는 runtime proof가 아닙니다.</li><li>manifest-declared MCP/hook은 runtime-callable proof가 아닙니다.</li><li>benchmark score는 UX, recovery, privacy, cost, maintainability를 모두 설명하지 않습니다.</li></ul>
+<div class="table-wrap"><table>
+<thead><tr><th>혼동</th><th>분리해서 볼 것</th></tr></thead>
+<tbody>
+<tr><td>manifest에 hook이 있다</td><td>실제 <code>$...</code> workflow가 runtime-callable인가</td></tr>
+<tr><td>source에 team runtime이 있다</td><td>live tmux/worktree worker가 실제로 돌고 recovery 되는가</td></tr>
+<tr><td>benchmark에서 pass했다</td><td>task family와 oracle이 실제 업무 실패를 덮지 않는가</td></tr>
+<tr><td>editor UX가 좋다</td><td>hidden index/context failure가 추적 가능한가</td></tr>
+<tr><td>smoke test가 통과했다</td><td>non-toy task completion과 artifact replay가 있는가</td></tr>
+</tbody></table></div>
+<h2 id="실패-패턴으로-다시-읽기">실패 패턴으로 다시 읽기</h2>
+<p>Public issue corpus는 prevalence evidence가 아닙니다. 하지만 failure taxonomy를 만드는 데는 유용합니다. context loss, bad edit application, sandbox friction, repeated loop, remote workspace mismatch는 서로 다른 계열에서 반복됩니다. 이 패턴은 “agent가 틀렸다”보다 “어느 layer가 실패했는가”를 묻도록 도와줍니다.</p>
 <h2 id="이-장의-결론">이 장의 결론</h2>
-<p>agent를 비교할 때 첫 질문은 “어떤 모델을 쓰는가”가 아니라 “어디에 loop가 있고, 어디에 state가 남고, 어떤 evidence를 남기는가”입니다. 이 분류가 있어야 다음 장의 공통 아키텍처를 제품별 UI와 독립적으로 읽을 수 있습니다.</p>
+<p>분류의 목적은 이름표 붙이기가 아니라 검증 질문을 고르는 것입니다. IDE 계열에는 index와 editor-state evidence를 요구하고, CLI 계열에는 shell/sandbox/edit evidence를 요구하고, runner 계열에는 trajectory를 요구하고, orchestrator 계열에는 durable state와 recovery proof를 요구해야 합니다.</p>
 <h2 id="더-읽기">더 읽기</h2>
-<ul><li><a href="../research/coding-agent-taxonomy.md">Taxonomy research note</a></li><li><a href="../assets/evidence/agent-orchestration-comparison.md">Agent orchestration comparison</a></li></ul>
+<ul><li><a href="../assets/evidence/source-level-architecture-atlas.md">Source-level architecture atlas</a></li><li><a href="../assets/evidence/agent-orchestration-comparison.md">Agent orchestration comparison</a></li><li><a href="../research/coding-agent-taxonomy.md">Coding agent taxonomy archive</a></li></ul>
       </div>
       <div class="book-nav bottom"><a class="book-prev" href="../chapters/01-research-question.html"><span>이전</span>연구 질문</a><a class="book-next" href="../chapters/03-common-architecture.html"><span>다음</span>공통 구조</a></div>
       <footer class="article-footer">

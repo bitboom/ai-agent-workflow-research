@@ -46,6 +46,7 @@ test('index reflects under-the-hood research scope', () => {
   assert.match(html, /Evidence status/);
   assert.match(html, /source-confirmed/);
   assert.match(html, /basic runtime-confirmed/);
+  assert.match(html, /workflow artifact-backed/);
   assert.match(html, /UltraResearch draft/);
   for (const name of ['OpenAI Codex', 'Claude Code', 'Aider', 'OpenHands', 'SWE-agent', 'LazyCodex', 'Gajae-Code', 'Hermes']) {
     assert.match(html, new RegExp(name));
@@ -73,8 +74,9 @@ test('research markdown contains expected source-backed concepts', () => {
   const hermes = readFileSync(join(root, 'research/deep-dive-hermes-agent.md'), 'utf8');
   const omo = readFileSync(join(root, 'research/deep-dive-lazycodex-omo.md'), 'utf8');
   assert.match(gajae, /basic runtime-confirmed/i);
+  assert.match(gajae, /workflow artifact replay confirmed/i);
   assert.match(gajae, /gjc\/0\.7\.3/);
-  assert.match(gajae, /workflow replay pending/i);
+  assert.match(gajae, /live non-dry-run team/i);
   assert.doesNotMatch(gajae, /bun: not found/);
   assert.match(hermes, /0\.12\.0/);
   assert.match(hermes, /0\.17\.0/);
@@ -82,9 +84,14 @@ test('research markdown contains expected source-backed concepts', () => {
   assert.match(omo, /manifest-declared/i);
   const gjcReview = readFileSync(join(root, 'assets/evidence/gjc-documentation-review.md'), 'utf8');
   const gjcSmoke = readFileSync(join(root, 'assets/evidence/gajae-code-runtime-smoke.md'), 'utf8');
+  const gjcReplay = readFileSync(join(root, 'assets/evidence/gajae-code-workflow-replay.md'), 'utf8');
   assert.match(gjcReview, /GJC Documentation Review Pass/);
   assert.match(gjcSmoke, /smoke-test: ok/);
   assert.match(gjcSmoke, /GJC_PRINT_SMOKE_OK/);
+  assert.match(gjcReplay, /controlled workflow artifact replay confirmed/);
+  assert.match(gjcReplay, /deep-interview/);
+  assert.match(gjcReplay, /team --dry-run/);
+  assert.doesNotMatch(gjcReplay, /\/Users\/sangwan/);
 });
 
 test('no obvious credential material is committed in public files', () => {

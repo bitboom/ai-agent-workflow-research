@@ -2,7 +2,7 @@
 
 ## Summary
 
-Current result: **basic runtime-confirmed; full workflow replay pending**.
+Current result: **basic runtime-confirmed plus controlled workflow artifact replay confirmed**.
 
 A local Bun/GJC installation was added after the earlier UltraResearch pass. The initial historical state was `bun: not found` / `gjc: not found`; that is now superseded by the sanitized smoke capture below.
 
@@ -30,8 +30,8 @@ The global `gjc` command resolves through Bun to the scoped `@gajae-code/coding-
 
 ## What this does not prove
 
-- It does not prove that `deep-interview`, `ralplan`, `ultragoal`, or `team` produce correct project artifacts in a real repository.
-- It does not prove `.gjc/_session-*` recovery, audit, workflow-gate, or cleanup behavior.
+- It does not prove that `deep-interview`, `ralplan`, `ultragoal`, or `team` autonomously complete a real coding task.
+- It does not prove `.gjc/_session-*` recovery, corruption handling, live non-dry-run team/tmux execution, workflow-gate completeness, or cleanup behavior.
 - It does not resolve package/repo owner drift between npm metadata and inspected GitHub repo evidence.
 - It does not prove Hermes coordinator bridge behavior.
 
@@ -42,16 +42,8 @@ The global `gjc` command resolves through Bun to the scoped `@gajae-code/coding-
 - `packages/coding-agent/src/cli.ts` — command registry and root `--smoke-test` surface.
 - root `package.json` — smoke script wiring for `--version`, `--help`, `stats --help`, and `--smoke-test`.
 
-## Required next evidence
+## Follow-up workflow replay
 
-Run in an isolated temp repo and publish only sanitized outputs:
+A later controller pass completed a controlled temp-repo replay of `deep-interview`, `ralplan`, `ultragoal`, and `team --dry-run`. See [`gajae-code-workflow-replay.md`](gajae-code-workflow-replay.md).
 
-```bash
-gjc ralplan --help
-gjc ultragoal --help
-gjc team --help
-# then one read-only or minimal mutation-controlled workflow replay
-gjc -p --no-session --no-title --no-lsp "Summarize this repo purpose"
-```
-
-Record stdout/stderr, exit codes, package versions, generated `.gjc` paths, and cleanup status. Do not publish raw provider config, API keys, local private paths, or message logs.
+Remaining evidence gaps are live non-dry-run `team` execution, `.gjc` recovery/corruption behavior, long-running workflow resume semantics, Hermes coordinator bridge runtime, and package/repo owner drift. Do not publish raw provider config, API keys, local private paths, or message logs.

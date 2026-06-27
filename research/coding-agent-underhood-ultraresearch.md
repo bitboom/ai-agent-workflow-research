@@ -54,7 +54,7 @@ LazyCodex/OmO, Gajae-Code, Hermes delegation, and some OpenHands/Devin orchestra
 
 Local OmO evidence shows a Codex plugin/harness with lifecycle hooks, skills, MCP declarations, LSP/codegraph/git-bash helpers, ultrawork/ulw-loop/start-work/teammode state paths, and evidence-driven workflow instructions. This is not a standalone coding agent runtime in this local setup; it rides on Codex. [confidence: high for local observation]
 
-Gajae-Code local notes indicate a runner/control surface with interview, plan, execution, tmux/worktree/team and evidence orientation. A later controller pass basic-confirmed local `gjc/0.7.3` version/help/smoke/print mode, but full workflow/session replay remains unverified. [confidence: medium/high for source and basic runtime; medium for workflow behavior]
+Gajae-Code local notes indicate a runner/control surface with interview, plan, execution, tmux/worktree/team and evidence orientation. Later controller passes basic-confirmed local `gjc/0.7.3` version/help/smoke/print mode and artifact-backed a controlled temp-repo replay for `deep-interview`, `ralplan`, `ultragoal`, and `team --dry-run`; live team/recovery/Hermes bridge behavior remains unverified. [confidence: medium/high for source and artifact-backed workflow surface; medium for live orchestration behavior]
 
 Hermes local notes frame it as a persistent coordinator/runtime with gateway, memory, skills, cron, delegation, and MCP. It is better understood as a long-running coordinator that can call coding surfaces, not just a repo-local code editor. [confidence: high for local observation]
 
@@ -377,7 +377,7 @@ High confidence:
 
 Medium confidence:
 
-- Gajae-Code architecture claims are medium/high for source and package evidence; later controller evidence basic-confirms local `gjc` CLI smoke, while full workflow/session replay remains pending.
+- Gajae-Code architecture claims are medium/high for source and package evidence; later controller evidence basic-confirms local `gjc` CLI smoke and artifact-backs a controlled `.gjc` workflow replay, while live team/recovery/Hermes bridge behavior remains pending.
 - Windsurf-specific claims, because current docs in this pass route through Devin Desktop.
 - Product-specific review pain prevalence, because public review corpus was not exhaustively collected.
 

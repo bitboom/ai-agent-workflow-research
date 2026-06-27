@@ -67,7 +67,7 @@ Gajae-Code는 **독립 runner/control surface**로 보는 것이 맞다.
 ## 약점 / Caveat
 
 - README가 beta/experimental 상태를 명시한다. 중요한 작업은 반드시 독립 검증 필요.
-- 후속 pass에서 `gjc` basic smoke는 통과했다. 다만 full `ralplan`/`ultragoal`/`team` workflow와 `.gjc` artifact/recovery trace는 아직 별도 검증이 필요하다.
+- 후속 pass에서 `gjc` basic smoke는 통과했고, isolated temp repo에서 `deep-interview`/`ralplan`/`ultragoal`/`team --dry-run` controlled workflow artifact replay도 통과했다. 다만 live non-dry-run team, `.gjc` recovery/resume/corruption trace, Hermes bridge runtime은 아직 별도 검증이 필요하다.
 - MCP coordinator는 설정된 root allowlist와 mutation env가 없으면 fail-closed한다.
 - 장기 세션은 tmux/read_tail/turn 상태 polling 운영 discipline이 필요하다.
 

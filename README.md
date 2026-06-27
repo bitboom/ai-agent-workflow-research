@@ -14,6 +14,7 @@ GitHub Pages용 정적 HTML 리서치 리포트입니다.
 - LazyCodex/OmO deep dive: `research/deep-dive-lazycodex-omo.md`
 - Control-plane orchestration comparison: `assets/evidence/agent-orchestration-comparison.md`
 - GJC documentation review pass: `assets/evidence/gjc-documentation-review.md`
+- GJC workflow replay evidence: `assets/evidence/gajae-code-workflow-replay.md`
 - Evidence: `assets/evidence/*.md`
 - No framework / no build step required
 
@@ -36,6 +37,7 @@ GitHub Pages용 정적 HTML 리서치 리포트입니다.
 
 - LazyCodex/OmO `$ultraresearch`로 deep research corpus 생성
 - Gajae-Code `gjc`로 전체 공개 문서 리뷰를 실행하고 controller가 stale/status issue를 반영
+- Gajae-Code `gjc/0.7.3`를 isolated temp repo에서 `deep-interview`/`ralplan`/`ultragoal`/`team --dry-run`까지 replay하고 `.gjc/_session-*` artifacts를 controller가 검토
 - Controller가 official docs/source, local evidence, paper IDs, source clones를 교차검증
 - Benchmark/evaluation framework를 먼저 세워 runtime trace pilot을 해석 가능한 evidence로 제한
 - claim별 evidence status(source-confirmed/runtime-confirmed/artifact-backed/unverified)와 confidence를 분리

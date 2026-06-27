@@ -134,7 +134,7 @@
           <button class="theme-toggle" type="button" id="themeToggle">Light</button>
         </div>
       </nav>
-      <div class="kicker">GitHub Pages · LazyCodex/OmO UltraResearch + GJC review · 2026-06-27 KST</div>
+      <div class="kicker">GitHub Pages · LazyCodex/OmO UltraResearch + GJC review/replay · 2026-06-27 KST</div>
       <h1>Coding agent를 “제품 비교”가 아니라 “내부 구조”로 해부한다.</h1>
       <p class="lead">이 프로젝트의 핵심 목적은 코딩 에이전트들이 어떤 종류로 나뉘고, 공통적으로 어떻게 동작하며, 각 구현체가 under the hood에서 어떤 control layer·context layer·tool loop·verification gate를 갖는지 코드/문서/논문/후기 기반으로 단계적으로 분석하는 것이다.</p>
       <div class="hero-actions">
@@ -145,7 +145,7 @@
       </div>
       <div class="meta-row">
         <span class="pill">Scope: taxonomy → architecture → implementation → evidence</span>
-        <span class="pill">Method: LazyCodex/OmO <code>$ultraresearch</code> + controller cross-check</span>
+        <span class="pill">Method: LazyCodex/OmO <code>$ultraresearch</code> + GJC replay + controller cross-check</span>
         <span class="pill">Format: static <code>index.html</code></span>
         <span class="pill">Secrets redacted / not committed</span>
       </div>
@@ -211,7 +211,7 @@
             <tr><td>SWE-agent / Agentless</td><td>repo-local benchmark runner / pipeline</td><td>issue text, localization, tests</td><td>tool-mediated edits / generated patches</td><td>benchmark/container env</td><td>trajectory, test result, score</td><td><span class="tag high">source/paper-confirmed</span></td></tr>
             <tr><td>Cursor / Cline / Continue</td><td>IDE or extension host</td><td>active editor + index + rules/memory</td><td>editor diff/checkpoint/shell</td><td>modal approval, policy, auto modes</td><td>checkpoints, memory bank, IDE state</td><td><span class="tag medium">mixed source/docs</span></td></tr>
             <tr><td>LazyCodex / OmO</td><td>Codex plugin/harness layer</td><td>Codex context + injected hooks/skills/rules</td><td>Codex tools under ultrawork discipline</td><td>Codex policy + OmO hooks</td><td><code>.omo</code>, skills, evidence loops</td><td><span class="tag high">manifest-confirmed + artifact-backed; MCP runtime partly unverified</span></td></tr>
-            <tr><td>Gajae-Code</td><td>independent runner/control surface</td><td>interview → plan → goal state</td><td>tmux/worktree/team execution</td><td>external runner boundaries</td><td><code>.gjc</code> specs/plans/ledgers</td><td><span class="tag medium">source-confirmed + basic runtime-confirmed; workflow replay pending</span></td></tr>
+            <tr><td>Gajae-Code</td><td>independent runner/control surface</td><td>interview → plan → goal state</td><td>tmux/worktree/team execution</td><td>external runner boundaries</td><td><code>.gjc</code> specs/plans/ledgers</td><td><span class="tag high">source-confirmed + basic runtime-confirmed + workflow artifact-backed; live team/recovery pending</span></td></tr>
             <tr><td>Hermes Agent</td><td>persistent coordinator/runtime</td><td>memory, skills, messaging identity, tools</td><td>delegates to tools/runtimes</td><td>toolsets, gateways, backend controls</td><td>memory, skills, cron, session search</td><td><span class="tag high">runtime-confirmed 0.12.0 + source-confirmed 0.17.0; parity unresolved</span></td></tr>
           </tbody>
         </table>
@@ -226,7 +226,7 @@
         <article class="card"><h3>OpenHands / SWE-agent / Agentless</h3><ul class="mini-list"><li>runtime, sandbox, action/observation, benchmark harness가 agent 품질에 직접 관여한다.</li><li>Agentless는 모든 작업에 full autonomous loop가 필요한 것은 아님을 보여준다.</li></ul></article>
         <article class="card"><h3>IDE-style agents</h3><ul class="mini-list"><li>IDE index와 editor diff UX가 강점이다.</li><li>hidden context selection, stale index, approval fatigue가 주요 실패 원인이다.</li></ul></article>
         <article class="card"><h3>LazyCodex / OmO</h3><ul class="mini-list"><li>Codex 위에 lifecycle hooks, skills, MCP 선언, <code>.omo</code> artifact schema를 얹는 plugin/harness layer다.</li><li><a href="research/deep-dive-lazycodex-omo.md">deep dive</a>와 <a href="assets/evidence/lazycodex-runtime-callable-surface.md">runtime-callable matrix</a>에서 manifest evidence와 runtime replay를 분리했다.</li></ul></article>
-        <article class="card"><h3>Gajae-Code / Hermes</h3><ul class="mini-list"><li>Gajae는 <code>.gjc</code> state와 four workflow skills 중심의 TypeScript/Bun control plane이며 local <code>gjc</code> basic smoke는 확인됐고 full workflow/session replay는 남았다.</li><li>Hermes는 local runtime <code>0.12.0</code>과 source clone <code>0.17.0</code>이 갈라진 persistent coordinator다.</li><li><a href="research/deep-dive-gajae-code.md">Gajae</a> / <a href="research/deep-dive-hermes-agent.md">Hermes</a> 문서에서 caveat를 분리했다.</li></ul></article>
+        <article class="card"><h3>Gajae-Code / Hermes</h3><ul class="mini-list"><li>Gajae는 <code>.gjc</code> state와 four workflow skills 중심의 TypeScript/Bun control plane이며 local <code>gjc</code> basic smoke와 controlled workflow artifact replay가 확인됐다.</li><li>남은 Gajae caveat는 live non-dry-run team, recovery/resume, Hermes bridge runtime이다.</li><li>Hermes는 local runtime <code>0.12.0</code>과 source clone <code>0.17.0</code>이 갈라진 persistent coordinator다.</li><li><a href="research/deep-dive-gajae-code.md">Gajae</a> / <a href="research/deep-dive-hermes-agent.md">Hermes</a> 문서에서 caveat를 분리했다.</li></ul></article>
       </div>
     </section>
 
@@ -252,6 +252,7 @@
         <a href="research/deep-dive-hermes-agent.md"><span>Hermes Agent deep dive: version drift, runtime/coordinator map</span><code>deep dive</code></a>
         <a href="research/deep-dive-lazycodex-omo.md"><span>LazyCodex/OmO deep dive: manifest vs runtime-callable surface</span><code>deep dive</code></a>
         <a href="assets/evidence/gajae-code-runtime-smoke.md"><span>Gajae-Code runtime smoke status</span><code>basic runtime-confirmed</code></a>
+        <a href="assets/evidence/gajae-code-workflow-replay.md"><span>Gajae-Code workflow replay: deep-interview, ralplan, ultragoal, team dry-run</span><code>workflow artifact-backed</code></a>
         <a href="assets/evidence/hermes-local-version-drift.md"><span>Hermes local/source version drift evidence</span><code>version drift</code></a>
         <a href="assets/evidence/lazycodex-runtime-callable-surface.md"><span>LazyCodex/OmO runtime-callable surface matrix</span><code>runtime matrix</code></a>
         <a href="assets/evidence/agent-orchestration-comparison.md"><span>Control-plane orchestration comparison: Gajae vs Hermes vs OmO</span><code>comparison</code></a>
@@ -264,7 +265,7 @@
     <section id="next">
       <div class="section-head"><span class="eyebrow">Next Steps</span><h2>source-level atlas 이후: triad deep dive와 runtime proof</h2></div>
       <div class="callout">
-        <p><strong>우선순위 변경:</strong> SHA-pinned repo/package atlas 다음에는 작은 동일 저장소 실행 기록 비교가 아니라, 먼저 <a href="research/coding-agent-evaluation-framework.md">벤치마크/평가 프레임워크</a>와 <a href="assets/evidence/agent-orchestration-comparison.md">Gajae/Hermes/OmO control-plane triad</a>를 기준으로 프로젝트별 source-level deep dive를 만든다. 실행 기록 파일럿은 평가표, 과제군, 근거 스키마가 고정된 뒤 실제 저장소 과제로 실행한다.</p>
+        <p><strong>우선순위 변경:</strong> SHA-pinned repo/package atlas 다음에는 작은 동일 저장소 실행 기록 비교가 아니라, 먼저 <a href="research/coding-agent-evaluation-framework.md">벤치마크/평가 프레임워크</a>와 <a href="assets/evidence/agent-orchestration-comparison.md">Gajae/Hermes/OmO control-plane triad</a>를 기준으로 프로젝트별 source-level deep dive를 만든다. Gajae는 controlled `.gjc` artifact replay까지 완료됐으므로 다음 실행 기록 파일럿은 live team/recovery/Hermes bridge와 benchmark trace schema다.</p>
         <p class="muted">UltraResearch는 draft/hypothesis로 두고, canonical evidence는 source paths, official docs, public issues, sanitized runtime traces, controller cross-check로 제한한다.</p>
       </div>
     </section>

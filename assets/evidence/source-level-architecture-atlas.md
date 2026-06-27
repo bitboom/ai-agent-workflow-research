@@ -11,7 +11,7 @@
 - 파일명/search/import만 확인한 항목은 medium confidence로 둔다.
 - closed-source 제품의 internal ranking, model routing, hidden indexing은 공식 문서 밖이면 low confidence다.
 - LazyCodex/OmO는 manifest-declared MCP/hooks/commands와 runtime-callable surface를 분리한다. 실제 runtime behavior는 in-Codex `$...` 실행, trace/log, `.omo/` artifact가 있어야 한다.
-- Gajae-Code는 public repo/source 근거와 local `gjc` command smoke test를 분리한다. 이 문서 기준 local `gjc` smoke test는 아직 미검증이다.
+- Gajae-Code는 public repo/source 근거, local `gjc` smoke, controlled workflow artifact replay, live team/recovery/bridge proof를 분리한다.
 
 ## SHA-pinned source inputs
 
@@ -118,7 +118,7 @@ OpenHands note: the current repo checkout did not expose the same obvious SDK/ru
 | Commands | `packages/coding-agent/src/commands/ultragoal.ts`, `commands/ralplan.ts`, `commands/team.ts`, `commands/coordinator.ts`, `commands/harness.ts` | Public command classes map to the workflow runtime. | high |
 | Tools/MCP/extensions | `packages/coding-agent/src/tools/*`, `runtime-mcp/*`, `capability/mcp.ts`, `extensibility/hooks/*`, `extensibility/custom-tools/*`, `extensibility/extensions/*` | Tool, MCP, hook, custom tool, and extension surfaces are source-visible. | medium-high |
 | Edit/exec | `packages/coding-agent/src/edit/index.ts`, `edit/modes/patch.ts`, `edit/modes/replace.ts`, `exec/bash-executor.ts`, `tools/bash.ts`, `tools/write.ts`, `tools/read.ts`, `tools/search.ts` | Edit modes and shell/read/write/search tools are separate implementation paths. | medium-high |
-| Runtime caveat | local `gjc` basic smoke | `gjc/0.7.3` version/help/smoke/print smoke now pass locally; full `.gjc` workflow/session replay and Hermes bridge traces are still pending. | basic runtime-confirmed; workflow unverified |
+| Runtime caveat | local `gjc` smoke + controlled workflow replay | `gjc/0.7.3` version/help/smoke/print smoke pass locally; controlled temp-repo replay created `.gjc/_session-*` artifacts for `deep-interview`, `ralplan`, `ultragoal`, and `team --dry-run`; live team/recovery/Hermes bridge traces remain pending. | basic runtime-confirmed + workflow artifact-backed |
 
 ### Hermes Agent
 

@@ -11,7 +11,7 @@ window.addEventListener('scroll', updateProgress, { passive: true });
 window.addEventListener('resize', updateProgress);
 updateProgress();
 
-const links = [...document.querySelectorAll('.toc a')];
+const links = [...document.querySelectorAll('.toc a[href^="#"]')];
 const sections = links.map(link => document.querySelector(link.getAttribute('href'))).filter(Boolean);
 if ('IntersectionObserver' in window) {
   const observer = new IntersectionObserver(entries => {

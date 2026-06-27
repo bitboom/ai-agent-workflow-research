@@ -14,6 +14,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 BASE_URL = 'https://bitboom.github.io/ai-agent-workflow-research/'
+SCRIPT_VERSION = '20260628-quality'
 
 
 @dataclass(frozen=True)
@@ -329,7 +330,7 @@ def template(page: Page, title: str, body: str, headings: list[tuple[int, str, s
       </footer>
     </article>
   </main>
-  <script src="{prefix}script.js"></script>
+  <script src="{prefix}script.js?v={SCRIPT_VERSION}"></script>
 </body>
 </html>
 '''

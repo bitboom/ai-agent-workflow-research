@@ -173,5 +173,6 @@ test('client script provides reading progress and mobile toc', () => {
   const js = read('script.js');
   assert.match(js, /reading-progress/);
   assert.match(js, /IntersectionObserver/);
+  assert.match(js, /a\[href\^="#"\]/);
   assert.match(js, /toc-open/);
 });

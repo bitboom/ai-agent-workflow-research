@@ -43,10 +43,21 @@
 | `assets/evidence/reconciled-facts.md` | Controller adjudication of Codex/LazyCodex/Gajae/Hermes local and public facts | high for local observation, medium for external claims where routed through notes |
 | `assets/evidence/gajae-code-crosscheck.md` | Gajae public/npm/repo and local execution caveat | medium |
 | `assets/evidence/hermes-crosscheck.md` | Hermes local version, gateway state, public docs summary, secret redaction caveat | high for local observation, medium for external claims |
+| `assets/evidence/source-level-architecture-atlas.md` | SHA-pinned repo/package source atlas for Codex, Aider, SWE-agent, Goose, Cline, Roo, Continue, OpenHands, Gajae-Code, and Hermes plus public failure-pattern corpus | high for directly read source paths, medium for issue corpus |
 | `~/.codex/plugins/cache/sisyphuslabs/omo/4.13.0/.codex-plugin/plugin.json` | OmO plugin capabilities, hooks, MCP pointer | high local source |
 | `~/.codex/plugins/cache/sisyphuslabs/omo/4.13.0/.mcp.json` | OmO declared MCP servers | high local source, medium runtime claim |
 | `~/.codex/plugins/cache/sisyphuslabs/omo/4.13.0/hooks/*.json` | OmO lifecycle hook wiring | high local source |
 | `~/.codex/plugins/cache/sisyphuslabs/omo/4.13.0/components/teammode/skills/teammode/SKILL.md` | OmO team state path and team workflow docs | high local source, medium runtime proof |
+
+## Source-Level Architecture Atlas Snapshot
+
+The source-level atlas has moved from “next step” to an evidence artifact. See `assets/evidence/source-level-architecture-atlas.md` for:
+
+- SHA-pinned local clone/package inputs for Codex, Aider, SWE-agent, Goose, Cline, Roo, Continue, OpenHands, Gajae-Code, and Hermes.
+- Per-agent loop/context/edit/sandbox/verification/state/tool-surface file maps.
+- A public GitHub issue corpus grouped by context loss, bad edit application, sandbox/approval friction, test/evaluation caveats, runaway loops, routing/cost/latency, and local environment assumptions.
+
+Caveats preserved there: OpenHands repo source is separated from PyPI package source; Gajae-Code public source evidence is not treated as local `gjc` smoke-test evidence; OmO manifest declarations are not treated as runtime-callable proof.
 
 ## Papers And Benchmarks
 

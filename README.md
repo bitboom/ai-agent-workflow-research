@@ -8,6 +8,10 @@ GitHub Pages용 정적 HTML 리서치 리포트입니다.
 - Source map: `research/coding-agent-source-map.md`
 - Evaluation framework: `research/coding-agent-evaluation-framework.md`
 - Open questions: `research/coding-agent-open-questions.md`
+- Gajae-Code deep dive: `research/deep-dive-gajae-code.md`
+- Hermes Agent deep dive: `research/deep-dive-hermes-agent.md`
+- LazyCodex/OmO deep dive: `research/deep-dive-lazycodex-omo.md`
+- Agent orchestration comparison: `assets/evidence/agent-orchestration-comparison.md`
 - Evidence: `assets/evidence/*.md`
 - No framework / no build step required
 

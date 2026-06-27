@@ -12,7 +12,10 @@ const publicMarkdown = [
   'research/coding-agent-taxonomy.md',
   'research/coding-agent-source-map.md',
   'research/coding-agent-evaluation-framework.md',
-  'research/coding-agent-open-questions.md'
+  'research/coding-agent-open-questions.md',
+  'research/deep-dive-gajae-code.md',
+  'research/deep-dive-hermes-agent.md',
+  'research/deep-dive-lazycodex-omo.md'
 ];
 
 test('static site core files exist', () => {
@@ -36,6 +39,10 @@ test('index reflects under-the-hood research scope', () => {
   assert.match(html, /coding-agent-evaluation-framework\.md/);
   assert.match(html, /벤치마크\/평가 프레임워크/);
   assert.match(html, /실행 기록 파일럿/);
+  assert.match(html, /deep-dive-gajae-code\.md/);
+  assert.match(html, /deep-dive-hermes-agent\.md/);
+  assert.match(html, /deep-dive-lazycodex-omo\.md/);
+  assert.match(html, /agent-orchestration-comparison\.md/);
   for (const name of ['OpenAI Codex', 'Claude Code', 'Aider', 'OpenHands', 'SWE-agent', 'LazyCodex', 'Gajae-Code', 'Hermes']) {
     assert.match(html, new RegExp(name));
   }
@@ -56,6 +63,15 @@ test('research markdown contains expected source-backed concepts', () => {
   assert.match(framework, /Trace Schema/);
   assert.match(framework, /Terminal-Bench/);
   assert.match(framework, /Agentless-style staged repair/);
+  const gajae = readFileSync(join(root, 'research/deep-dive-gajae-code.md'), 'utf8');
+  const hermes = readFileSync(join(root, 'research/deep-dive-hermes-agent.md'), 'utf8');
+  const omo = readFileSync(join(root, 'research/deep-dive-lazycodex-omo.md'), 'utf8');
+  assert.match(gajae, /runtime unverified/i);
+  assert.match(gajae, /bun: not found/);
+  assert.match(hermes, /0\.12\.0/);
+  assert.match(hermes, /0\.17\.0/);
+  assert.match(omo, /runtime-callable/i);
+  assert.match(omo, /manifest-declared/i);
 });
 
 test('no obvious credential material is committed in public files', () => {

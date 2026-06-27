@@ -15,4 +15,7 @@ research/*
 !research/coding-agent-source-map.md
 !research/coding-agent-evaluation-framework.md
 !research/coding-agent-open-questions.md
+!research/deep-dive-lazycodex-omo.md
+!research/deep-dive-hermes-agent.md
+!research/deep-dive-gajae-code.md
 research-prompt.md

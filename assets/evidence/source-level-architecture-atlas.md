@@ -146,7 +146,8 @@ This sweep uses GitHub public issue search as anecdotal/diagnostic evidence only
 
 ## Immediate next research steps
 
-1. Convert this map into per-agent deeper pages with line-level excerpts for the high-risk axes: context compaction, edit application, approval, verification.
-2. Run one identical small repo task through Codex, Aider, OpenHands, and SWE-agent-style harnesses; compare action traces and failure recovery.
+1. Publish the benchmark/evaluation framework first: task families, scoring rubric, evidence tiers, and trace schema.
+2. Convert this map into per-agent deeper pages with line-level excerpts for the high-risk axes: context compaction, edit application, approval, verification.
 3. For LazyCodex/OmO, collect runtime-callable evidence from actual in-Codex `$...` commands and `.omo/` artifacts instead of relying on plugin manifests.
 4. For Gajae-Code, run a minimal `gjc` command smoke test in a clean env and record version/exit/result separately from public source evidence.
+5. After the framework and deep dives exist, run trace pilots on real repo tasks through locally installable agents; do not use a single toy identical task as primary evidence.

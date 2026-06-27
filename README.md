@@ -6,6 +6,7 @@ GitHub Pages용 정적 HTML 리서치 리포트입니다.
 - Main report: `research/coding-agent-underhood-ultraresearch.md`
 - Taxonomy: `research/coding-agent-taxonomy.md`
 - Source map: `research/coding-agent-source-map.md`
+- Evaluation framework: `research/coding-agent-evaluation-framework.md`
 - Open questions: `research/coding-agent-open-questions.md`
 - Evidence: `assets/evidence/*.md`
 - No framework / no build step required
@@ -29,6 +30,7 @@ GitHub Pages용 정적 HTML 리서치 리포트입니다.
 
 - LazyCodex/OmO `$ultraresearch`로 deep research corpus 생성
 - Controller가 official docs/source, local evidence, paper IDs, source clones를 교차검증
+- Benchmark/evaluation framework를 먼저 세워 runtime trace pilot을 해석 가능한 evidence로 제한
 - claim별 confidence를 high/medium/low로 분리
 - API key, token, credential, connection string은 커밋하지 않음
 

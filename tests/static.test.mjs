@@ -11,6 +11,7 @@ const publicMarkdown = [
   'research/coding-agent-underhood-ultraresearch.md',
   'research/coding-agent-taxonomy.md',
   'research/coding-agent-source-map.md',
+  'research/coding-agent-evaluation-framework.md',
   'research/coding-agent-open-questions.md'
 ];
 
@@ -32,6 +33,9 @@ test('index reflects under-the-hood research scope', () => {
   assert.match(html, /model router/i);
   assert.match(html, /context assembly/i);
   assert.match(html, /verification gate/i);
+  assert.match(html, /coding-agent-evaluation-framework\.md/);
+  assert.match(html, /벤치마크\/평가 프레임워크/);
+  assert.match(html, /실행 기록 파일럿/);
   for (const name of ['OpenAI Codex', 'Claude Code', 'Aider', 'OpenHands', 'SWE-agent', 'LazyCodex', 'Gajae-Code', 'Hermes']) {
     assert.match(html, new RegExp(name));
   }
@@ -40,12 +44,18 @@ test('index reflects under-the-hood research scope', () => {
 test('research markdown contains expected source-backed concepts', () => {
   const main = readFileSync(join(root, 'research/coding-agent-underhood-ultraresearch.md'), 'utf8');
   const sourceMap = readFileSync(join(root, 'research/coding-agent-source-map.md'), 'utf8');
+  const framework = readFileSync(join(root, 'research/coding-agent-evaluation-framework.md'), 'utf8');
   assert.match(main, /Coding Agent Under The Hood UltraResearch/);
   assert.match(main, /SWE-bench/);
   assert.match(main, /Agentless/);
   assert.match(main, /Failure pattern/);
   assert.match(sourceMap, /https:\/\/arxiv\.org\/abs\/2407\.01489/);
   assert.doesNotMatch(sourceMap, /2407\.01494/);
+  assert.match(framework, /Context\/localization/);
+  assert.match(framework, /Verification honesty/);
+  assert.match(framework, /Trace Schema/);
+  assert.match(framework, /Terminal-Bench/);
+  assert.match(framework, /Agentless-style staged repair/);
 });
 
 test('no obvious credential material is committed in public files', () => {

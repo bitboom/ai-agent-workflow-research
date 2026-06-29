@@ -14,7 +14,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 BASE_URL = 'https://bitboom.github.io/ai-agent-workflow-research/'
-SCRIPT_VERSION = '20260628-quality'
+SCRIPT_VERSION = '20260629-orchestrator'
 
 
 @dataclass(frozen=True)
@@ -27,13 +27,13 @@ class Page:
 
 PAGES = [
     Page('chapters/README.md', 'chapters/index.html', 'Contents', '목차'),
-    Page('chapters/01-research-question.md', 'chapters/01-research-question.html', 'Chapter 01', '연구 질문'),
-    Page('chapters/02-agent-taxonomy.md', 'chapters/02-agent-taxonomy.html', 'Chapter 02', 'Agent 분류'),
-    Page('chapters/03-common-architecture.md', 'chapters/03-common-architecture.html', 'Chapter 03', '공통 구조'),
-    Page('chapters/04-implementation-atlas.md', 'chapters/04-implementation-atlas.html', 'Chapter 04', '구현체 지도'),
-    Page('chapters/05-control-plane-triad.md', 'chapters/05-control-plane-triad.html', 'Chapter 05', 'Control planes'),
-    Page('chapters/06-evaluation-framework.md', 'chapters/06-evaluation-framework.html', 'Chapter 06', '평가'),
-    Page('chapters/07-caveats-and-next.md', 'chapters/07-caveats-and-next.html', 'Chapter 07', '다음 실험'),
+    Page('chapters/01-research-question.md', 'chapters/01-research-question.html', 'Chapter 01', '중심 질문'),
+    Page('chapters/02-agent-taxonomy.md', 'chapters/02-agent-taxonomy.html', 'Chapter 02', '분석 프레임'),
+    Page('chapters/03-common-architecture.md', 'chapters/03-common-architecture.html', 'Chapter 03', 'Gajae-Code'),
+    Page('chapters/04-implementation-atlas.md', 'chapters/04-implementation-atlas.html', 'Chapter 04', 'Hermes'),
+    Page('chapters/05-control-plane-triad.md', 'chapters/05-control-plane-triad.html', 'Chapter 05', 'LazyCodex/OmO'),
+    Page('chapters/06-evaluation-framework.md', 'chapters/06-evaluation-framework.html', 'Chapter 06', '비교'),
+    Page('chapters/07-caveats-and-next.md', 'chapters/07-caveats-and-next.html', 'Chapter 07', '다음 검증'),
     Page('appendix/evidence-index.md', 'appendix/evidence-index.html', 'Appendix', 'Evidence index'),
 ]
 
@@ -56,17 +56,21 @@ def slugify(text: str) -> str:
 def convert_href(href: str, source_path: Path, output_path: Path) -> str:
     if re.match(r'^(https?:|mailto:|#)', href):
         return href
-    if href.startswith('../index.html') or href == 'index.html':
-        return rel_prefix(str(output_path)) + 'index.html'
+
+    path_part, sep, fragment = href.partition('#')
+    fragment_suffix = f'#{fragment}' if sep else ''
+
+    if path_part.startswith('../index.html') or path_part == 'index.html':
+        return rel_prefix(str(output_path)) + 'index.html' + fragment_suffix
 
     source_dir = source_path.parent
-    resolved = (source_dir / href).as_posix()
-    resolved = re.sub(r'/+', '/', resolved)
-    if resolved in OUTPUT_BY_MD:
-        return Path(rel_prefix(str(output_path)) + OUTPUT_BY_MD[resolved]).as_posix()
+    try:
+        resolved = (ROOT / source_dir / path_part).resolve(strict=False).relative_to(ROOT).as_posix()
+    except ValueError:
+        resolved = re.sub(r'/+', '/', (source_dir / path_part).as_posix())
 
-    if href == 'README.md' and source_dir.as_posix() == 'chapters':
-        return 'index.html' if output_path.parent.as_posix().endswith('chapters') else '../chapters/index.html'
+    if resolved in OUTPUT_BY_MD:
+        return Path(rel_prefix(str(output_path)) + OUTPUT_BY_MD[resolved]).as_posix() + fragment_suffix
 
     return href
 
@@ -118,7 +122,7 @@ def page_description(markdown: str) -> str:
         desc = plain_text(stripped)
         if desc:
             return desc[:155]
-    return 'AI coding agent architecture를 source path, runtime proof, artifact, failure mode로 읽는 한국어 리서치 북 챕터입니다.'
+    return 'Gajae-Code, Hermes Agent, LazyCodex/OmO를 Workflow Control Plane 관점에서 읽는 한국어 리서치 북 챕터입니다.'
 
 
 def is_table_start(lines: list[str], i: int) -> bool:
@@ -270,7 +274,7 @@ def template(page: Page, title: str, body: str, headings: list[tuple[int, str, s
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>{html.escape(title)} — AI Coding Agent 구조 해부</title>
+  <title>{html.escape(title)} — Workflow Control Plane 분석</title>
   <meta name="description" content="{escaped_description}">
   <meta name="robots" content="index, follow">
   <link rel="canonical" href="{html.escape(canonical, quote=True)}">
@@ -296,13 +300,13 @@ def template(page: Page, title: str, body: str, headings: list[tuple[int, str, s
   <div class="progress" aria-hidden="true"><span id="reading-progress"></span></div>
   <header class="site-header">
     <a class="brand" href="{prefix}index.html" aria-label="첫 화면으로 이동">
-      <span class="brand-mark">AGENT</span>
-      <span>Architecture Book</span>
+      <span class="brand-mark">CONTROL</span>
+      <span>Workflow Book</span>
     </a>
     <nav class="top-nav" aria-label="상단 메뉴">
       <a href="{prefix}index.html#contents">목차</a>
-      <a href="{prefix}index.html#architecture">공통 구조</a>
-      <a href="{prefix}index.html#control-planes">Control planes</a>
+      <a href="{prefix}index.html#taxonomy">분석 프레임</a>
+      <a href="{prefix}index.html#control-planes">Orchestrators</a>
       <a href="{prefix}appendix/evidence-index.html">근거</a>
       <a class="button button-small" href="https://github.com/bitboom/ai-agent-workflow-research" target="_blank" rel="noopener">GitHub</a>
     </nav>
@@ -326,7 +330,7 @@ def template(page: Page, title: str, body: str, headings: list[tuple[int, str, s
       </div>
       <div class="book-nav bottom">{prev_html}{next_html}</div>
       <footer class="article-footer">
-        <p>이 페이지는 repository의 source Markdown에서 생성된 public HTML book page입니다. 세부 evidence artifact는 <a href="{prefix}appendix/evidence-index.html">Evidence index</a>에서 확인하세요.</p>
+        <p>본문의 근거와 판정 라벨은 <a href="{prefix}appendix/evidence-index.html">Evidence index</a>에서 함께 추적한다.</p>
       </footer>
     </article>
   </main>

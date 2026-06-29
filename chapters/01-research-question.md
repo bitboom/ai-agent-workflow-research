@@ -1,68 +1,43 @@
-# Chapter 01 — 연구 질문과 판정 기준
+# Coding Agent는 Workflow Orchestrator로 진화하고 있는가
 
-[← 목차](README.md) · [다음: Agent 분류 →](02-agent-taxonomy.md)
+[← 목차](README.md)
 
-## 한 문장 질문
+이 프로젝트의 중심 질문은 단순한 제품 비교가 아니다. “Codex가 좋은가, Aider가 좋은가, OpenHands가 좋은가”라는 질문은 여전히 유용하지만, 지금 이 책에서 보려는 현상은 그보다 한 층 위에 있다. 최신 coding agent 생태계에서 중요한 변화는 더 똑똑한 단일 agent loop만이 아니다. 실제 작업을 안전하게 끝내기 위해서는 계획, 승인, 실행, 검증, 산출물 기록, 실패 복구, 병렬 worker 조율이 필요하고, 이 책임은 점점 **Workflow Control Plane / Workflow Orchestrator**라는 별도 층으로 모이고 있다.
 
-AI coding agent를 제품 기능표가 아니라 **agent loop, context assembly, tool boundary, verification gate, durable state** 관점에서 어떻게 읽을 것인가?
+따라서 이 책의 질문은 다음과 같다.
 
-이 질문은 일부러 제품 순위를 묻지 않습니다. 같은 모델을 쓰더라도 agent가 어떤 파일을 읽는지, 어떤 command를 실행할 수 있는지, 실패한 test를 어떻게 반영하는지, 세션이 끝난 뒤 state를 복구할 수 있는지에 따라 결과는 크게 달라집니다. 따라서 이 책의 단위는 “제품명”이 아니라 **구조적 책임 영역**입니다.
+> Coding Agent는 이제 단일 AI Agent가 아니라, workflow를 설계·통제·기록·복구하는 Workflow Orchestrator로 진화하고 있는가? Gajae-Code, Hermes Agent, LazyCodex/OmO는 그 진화를 각각 어떤 방식으로 구현하고 있는가?
 
-## 이 연구가 버리는 질문
+## 읽기 순서와 판단 기준
 
-- “어느 제품이 제일 좋은가?”
-- “어느 모델이 제일 똑똑한가?”
-- “벤치마크 점수 하나로 제품 품질을 말할 수 있는가?”
-- “한 번의 toy task 성공으로 실제 업무 품질을 말할 수 있는가?”
+이 책은 조사 일지가 아니라 판단 프레임이다. 독자가 먼저 알아야 할 것은 “어떤 도구를 조사했는가”보다 “무엇을 Workflow Orchestrator라고 부를 수 있는가”다. 그래서 본문은 목적, 분류, 세 시스템의 deep dive, 비교, 남은 검증 순서로 읽히게 구성했다. UltraResearch, controller cross-check, artifact replay 같은 제작 과정은 Appendix에서 provenance로 추적할 수 있지만, 본문의 출발점은 항상 thesis와 evidence label이다.
 
-이 질문들은 빠른 의사결정에는 유혹적이지만, 원인을 설명하지 못합니다. 어떤 agent가 patch를 잘못 만들었을 때 모델이 약해서인지, repo index가 stale해서인지, edit tool이 whole-file rewrite를 유도해서인지, verification gate가 실패를 숨겨서인지 분리할 수 없기 때문입니다.
+1장은 중심 질문을 고정한다. 2장은 AI Agent, Harness, Workflow Orchestrator를 구분한다. 3장부터 5장은 Gajae-Code, Hermes Agent, LazyCodex/OmO를 각각 다른 종류의 control-plane 시도로 읽는다. 6장은 세 시스템을 같은 축으로 비교하고, 7장은 아직 증명되지 않은 claim을 다음 실험으로 남긴다. 이 순서를 따르면 독자는 “멋진 기능 목록”이 아니라 “어떤 책임이 어디까지 증명됐는가”를 기준으로 읽게 된다.
 
-## 이 연구가 보는 질문
+## 이 책에서 AI Agent는 무엇인가
 
-1. loop는 IDE, CLI, runner, coordinator 중 어디에 있는가?
-2. context는 어떤 source에서 오고 어떻게 압축되는가?
-3. edits와 shell/tool 실행은 어떤 boundary를 통과하는가?
-4. verification은 test result뿐 아니라 trajectory까지 남기는가?
-5. state는 session 밖에서도 복구 가능한가?
-6. public evidence는 source, runtime, artifact, issue corpus 중 무엇인가?
+**AI Agent**는 하나의 목표를 받아 context를 구성하고, reasoning/tool call/edit/test loop를 돌려 결과물을 만드는 실행 주체다. 중심 단위는 `turn`, `message`, `tool call`, `patch`, `test run`이다. Codex CLI, Aider, Claude Code류의 단일 coding loop가 여기에 가까운 기준선이다. 이 layer에서 중요한 평가는 localization, patch correctness, tool-use discipline, verification honesty다.
 
-이 여섯 질문에 답하면 “agent가 똑똑하다”라는 막연한 표현을 더 구체적인 claim으로 바꿀 수 있습니다. 예를 들어 Gajae-Code는 `.gjc/_session-*` artifact를 남기는 workflow surface가 강점이지만 live team/recovery proof는 아직 별도입니다. Hermes는 persistent runtime이라는 장점이 있지만 local runtime과 source clone의 version drift를 분리해야 합니다. OmO는 manifest-declared hooks와 실제 runtime-callable workflow를 따로 확인해야 합니다.
+그러나 agent loop만으로는 긴 작업을 안정적으로 운영하기 어렵다. agent는 어느 파일을 읽고 어떤 도구를 호출할 수 있지만, 여러 phase를 강제하거나 승인 gate를 유지하거나 session 밖의 durable artifact ledger를 일관되게 관리하는 책임은 별도 구조가 필요하다. agent가 실패했을 때 어디서 resume할지, 어떤 산출물이 canonical인지, 여러 worker가 같은 repo에서 충돌하지 않게 하려면 무엇을 잠가야 하는지도 agent loop 바깥 문제다.
 
-## Claim ladder
+## Harness와 Orchestrator는 어떻게 다른가
 
-| 단계 | 질문 | 공개 문서에서 허용되는 표현 |
-| --- | --- | --- |
-| Draft | agent가 그렇게 말했는가? | “hypothesis”, “draft”, “needs cross-check” |
-| Source | repo/package/docs에서 보이는가? | “source-confirmed at path …” |
-| Runtime | 이 환경에서 실제로 실행됐는가? | “runtime-confirmed under conditions …” |
-| Artifact | 실행 뒤 state/trace가 남았는가? | “artifact-backed with sanitized map …” |
-| Generalization | 다른 repo/task에서도 반복됐는가? | “pilot evidence”, not product-wide ranking |
+**Harness**는 agent를 특정 task/environment/benchmark에 넣고 실행·관찰·평가하는 외부 실행 프레임이다. 중심 단위는 `task`, `environment`, `trajectory`, `score`, `oracle`이다. SWE-agent/OpenHands benchmark runner, Agentless-style repair/evaluation pipeline은 harness 관점에서 읽을 수 있다. harness는 재현 가능한 평가와 trajectory capture에 강하지만, 조직의 실제 workflow를 설계하고 운영하는 control plane과 동일하지는 않다.
 
-이 ladder가 없으면 agent research는 빠르게 marketing copy가 됩니다. 특히 closed-source 제품의 context ranking, hidden indexing, model routing은 공식 문서가 없으면 추정일 뿐입니다.
+**Workflow Orchestrator / Workflow Control Plane**은 agent나 harness를 worker 또는 substrate로 삼되, 실제 핵심 가치를 workflow 운영 책임에 둔다. 중심 단위는 `workflow`, `phase`, `state root`, `artifact`, `approval gate`, `worker`, `resume/recovery`다. 즉 “한 번 코드를 고쳤는가”보다 “작업이 어떤 절차와 증거를 따라 진행됐는가”, “실패했을 때 어디서 재개할 수 있는가”, “여러 agent가 어떤 state root 아래 조율되는가”를 본다.
 
-## 판정 라벨
+## 왜 Gajae-Code, Hermes, LazyCodex/OmO인가
 
-| 라벨 | 뜻 | 예시 |
-| --- | --- | --- |
-| source-confirmed | repo clone 또는 package source에서 직접 확인한 claim | command file, runtime module, test harness path |
-| runtime-confirmed | 현재 환경에서 command가 실행되고 결과를 반환한 claim | version/help/smoke command exit 0 |
-| artifact-backed | 실행 후 trace/state/ledger가 남은 claim | `.gjc`, `.omo`, jsonl ledger, generated plan |
-| manifest-confirmed | 선언은 있으나 callability는 별도 검증이 필요한 claim | plugin hook, MCP server manifest |
-| unverified | 아직 가설 또는 agent draft에만 있는 claim | closed-source internal ranking 추정 |
+이 세 시스템은 같은 답을 내지 않는다. 그 차이가 분석 대상이다. Gajae-Code는 repo-local workflow orchestrator에 가장 가깝다. `deep-interview → ralplan → ultragoal → team`이라는 phase 흐름과 `.gjc/_session-*` state root가 중심이다. Hermes는 하나의 repo workflow보다 넓다. memory, skills, gateway, cron, delegation, MCP/ACP, messaging identity를 통해 session 밖에서도 agent runtime을 유지하는 persistent meta-orchestrator다. LazyCodex/OmO는 Codex 자체를 대체하기보다 Codex 위에 hooks, `$...` skills, MCP declarations, `.omo` artifacts를 얹는 embedded workflow harness/control overlay다.
 
-이 라벨은 문서의 안전장치입니다. 같은 문장 안에서도 “소스에서 보인다”와 “실제로 실행됐다”와 “실행 결과 artifact가 남았다”는 다릅니다. 이 책은 그 차이를 독자에게 숨기지 않습니다.
+이 차이는 coding agent의 발전 방향을 보여준다. 하나의 agent가 더 많은 tool을 부르는 방향만 있는 것이 아니라, agent를 더 큰 workflow 안에 배치하고 그 workflow의 상태와 증거를 관리하는 방향이 있다. 이 책은 바로 그 방향을 중심으로 재구성한다.
 
-## 독자가 얻어야 하는 것
+## 본문 claim의 근거 라벨
 
-이 장을 읽고 나면 이후 장의 claim을 읽을 때 “근거의 종류가 무엇인가”를 먼저 묻게 됩니다. source path가 있는지, runtime command가 있는지, artifact가 있는지, 아니면 아직 manifest나 draft에 머무는지 구분하는 능력이 이 리서치 북의 핵심입니다.
+이 책은 confidence를 하나의 숫자로 뭉개지 않는다. `source-confirmed`는 repo source, package source, official docs에서 확인한 주장이다. `runtime-confirmed`는 현재 환경에서 command가 성공한 주장이다. `artifact-backed`는 실행 후 durable artifact가 남은 주장이다. `manifest-confirmed`는 plugin manifest나 docs 선언으로 확인했지만 실제 runtime callability는 별도 검증이 필요한 주장이다. `unverified`는 아직 source/runtime/artifact가 부족한 주장이다.
 
-## 핵심 근거
+이 라벨은 세 deep dive의 안전장치다. Gajae-Code의 controlled replay는 artifact-backed지만 live team은 아직 아니다. Hermes의 local gateway running은 runtime-confirmed지만 docs 최신 기능과 installed version parity는 별도 검증이 필요하다. LazyCodex/OmO의 plugin hooks는 manifest-confirmed지만 모든 `$...` workflow가 같은 방식으로 호출 가능한지는 unverified에 남긴다.
 
-- [Source-level architecture atlas](../assets/evidence/source-level-architecture-atlas.md)
-- [Controller cross-check notes](../assets/evidence/coding-agent-underhood-crosscheck.md)
-- [Reconciled facts](../assets/evidence/reconciled-facts.md)
-- [Gajae workflow replay](../assets/evidence/gajae-code-workflow-replay.md)
+## 독자가 얻어야 하는 결론
 
-## 다음 장으로
-
-다음 장은 이 판정 기준을 agent 분류에 적용합니다. IDE extension, CLI, benchmark runner, workflow orchestrator, persistent runtime은 모두 “AI coding agent”라고 불리지만, loop와 state의 위치가 달라서 실패 방식도 다릅니다.
+이 책을 끝까지 읽으면 독자는 세 가지를 판단할 수 있어야 한다. 첫째, 어떤 시스템이 AI Agent이고 어떤 시스템이 Harness이며 어떤 시스템이 Workflow Orchestrator인지 구분할 수 있어야 한다. 둘째, Gajae-Code/Hermes/LazyCodex가 각각 어떤 방식으로 control-plane 책임을 구현하거나 시도하는지 이해해야 한다. 셋째, 현재 coding agent의 발전 방향이 “single agent loop → workflow phase → durable state → artifact ledger → approval/recovery → team orchestration → persistent runtime”으로 이동하고 있음을 evidence label과 함께 판단할 수 있어야 한다.

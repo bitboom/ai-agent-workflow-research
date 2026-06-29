@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Chapter 02 — Agent 분류 — AI Coding Agent 구조 해부</title>
-  <meta name="description" content="Agent를 나눌 때 가장 먼저 볼 것은 UI가 아니라 loop의 위치입니다. loop가 editor extension 안에서 도는지, CLI process 안에서 도는지, benchmark runner가 container를 몰고 있는지, 별도 coordinator가 workt">
+  <title>AI Agent / Harness / Workflow Orchestrator 구분 — Workflow Control Plane 분석</title>
+  <meta name="description" content="Workflow Control Plane을 말하려면 먼저 세 층을 분리해야 한다. 많은 문서가 “agent”, “runner”, “harness”, “orchestrator”, “workflow”라는 단어를 섞어 쓰지만, 이 책에서는 의도적으로 구분한다. 구분의 목적은 용어 싸">
   <meta name="robots" content="index, follow">
   <link rel="canonical" href="https://bitboom.github.io/ai-agent-workflow-research/chapters/02-agent-taxonomy.html">
   <link rel="prev" href="https://bitboom.github.io/ai-agent-workflow-research/chapters/01-research-question.html">
@@ -12,13 +12,13 @@
   <meta property="og:locale" content="ko_KR">
   <meta property="og:site_name" content="AI Agent Workflow Research">
   <meta property="og:type" content="article">
-  <meta property="og:title" content="Chapter 02 — Agent 분류">
-  <meta property="og:description" content="Agent를 나눌 때 가장 먼저 볼 것은 UI가 아니라 loop의 위치입니다. loop가 editor extension 안에서 도는지, CLI process 안에서 도는지, benchmark runner가 container를 몰고 있는지, 별도 coordinator가 workt">
+  <meta property="og:title" content="AI Agent / Harness / Workflow Orchestrator 구분">
+  <meta property="og:description" content="Workflow Control Plane을 말하려면 먼저 세 층을 분리해야 한다. 많은 문서가 “agent”, “runner”, “harness”, “orchestrator”, “workflow”라는 단어를 섞어 쓰지만, 이 책에서는 의도적으로 구분한다. 구분의 목적은 용어 싸">
   <meta property="og:url" content="https://bitboom.github.io/ai-agent-workflow-research/chapters/02-agent-taxonomy.html">
   <meta property="og:image" content="https://bitboom.github.io/ai-agent-workflow-research/assets/og-image.svg">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="Chapter 02 — Agent 분류">
-  <meta name="twitter:description" content="Agent를 나눌 때 가장 먼저 볼 것은 UI가 아니라 loop의 위치입니다. loop가 editor extension 안에서 도는지, CLI process 안에서 도는지, benchmark runner가 container를 몰고 있는지, 별도 coordinator가 workt">
+  <meta name="twitter:title" content="AI Agent / Harness / Workflow Orchestrator 구분">
+  <meta name="twitter:description" content="Workflow Control Plane을 말하려면 먼저 세 층을 분리해야 한다. 많은 문서가 “agent”, “runner”, “harness”, “orchestrator”, “workflow”라는 단어를 섞어 쓰지만, 이 책에서는 의도적으로 구분한다. 구분의 목적은 용어 싸">
   <meta name="twitter:image" content="https://bitboom.github.io/ai-agent-workflow-research/assets/og-image.svg">
   <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -31,13 +31,13 @@
   <div class="progress" aria-hidden="true"><span id="reading-progress"></span></div>
   <header class="site-header">
     <a class="brand" href="../index.html" aria-label="첫 화면으로 이동">
-      <span class="brand-mark">AGENT</span>
-      <span>Architecture Book</span>
+      <span class="brand-mark">CONTROL</span>
+      <span>Workflow Book</span>
     </a>
     <nav class="top-nav" aria-label="상단 메뉴">
       <a href="../index.html#contents">목차</a>
-      <a href="../index.html#architecture">공통 구조</a>
-      <a href="../index.html#control-planes">Control planes</a>
+      <a href="../index.html#taxonomy">분석 프레임</a>
+      <a href="../index.html#control-planes">Orchestrators</a>
       <a href="../appendix/evidence-index.html">근거</a>
       <a class="button button-small" href="https://github.com/bitboom/ai-agent-workflow-research" target="_blank" rel="noopener">GitHub</a>
     </nav>
@@ -49,70 +49,63 @@
     <aside class="toc book-sidebar" id="site-toc" aria-label="책 목차">
       <p class="toc-title">Book</p>
       <nav class="chapter-nav"><a class="" href="../chapters/index.html"><span>Contents</span>목차</a>
-<a class="" href="../chapters/01-research-question.html"><span>Chapter 01</span>연구 질문</a>
-<a class="active" aria-current="page" href="../chapters/02-agent-taxonomy.html"><span>Chapter 02</span>Agent 분류</a>
-<a class="" href="../chapters/03-common-architecture.html"><span>Chapter 03</span>공통 구조</a>
-<a class="" href="../chapters/04-implementation-atlas.html"><span>Chapter 04</span>구현체 지도</a>
-<a class="" href="../chapters/05-control-plane-triad.html"><span>Chapter 05</span>Control planes</a>
-<a class="" href="../chapters/06-evaluation-framework.html"><span>Chapter 06</span>평가</a>
-<a class="" href="../chapters/07-caveats-and-next.html"><span>Chapter 07</span>다음 실험</a>
+<a class="" href="../chapters/01-research-question.html"><span>Chapter 01</span>중심 질문</a>
+<a class="active" aria-current="page" href="../chapters/02-agent-taxonomy.html"><span>Chapter 02</span>분석 프레임</a>
+<a class="" href="../chapters/03-common-architecture.html"><span>Chapter 03</span>Gajae-Code</a>
+<a class="" href="../chapters/04-implementation-atlas.html"><span>Chapter 04</span>Hermes</a>
+<a class="" href="../chapters/05-control-plane-triad.html"><span>Chapter 05</span>LazyCodex/OmO</a>
+<a class="" href="../chapters/06-evaluation-framework.html"><span>Chapter 06</span>비교</a>
+<a class="" href="../chapters/07-caveats-and-next.html"><span>Chapter 07</span>다음 검증</a>
 <a class="" href="../appendix/evidence-index.html"><span>Appendix</span>Evidence index</a></nav>
       <p class="toc-title section-toc-title">On this page</p>
-      <nav class="page-toc"><a class="level-2" href="#분류-기준">분류 기준</a>
-<a class="level-2" href="#여섯-계열">여섯 계열</a>
-<a class="level-2" href="#왜-loop-위치가-중요한가">왜 loop 위치가 중요한가</a>
-<a class="level-2" href="#중요한-구분">중요한 구분</a>
-<a class="level-2" href="#실패-패턴으로-다시-읽기">실패 패턴으로 다시 읽기</a>
-<a class="level-2" href="#이-장의-결론">이 장의 결론</a>
-<a class="level-2" href="#더-읽기">더 읽기</a></nav>
+      <nav class="page-toc"><a class="level-2" href="#세-층의-working-definition">세 층의 working definition</a>
+<a class="level-2" href="#분석-축-1-phase-model">분석 축 1 — phase model</a>
+<a class="level-2" href="#분석-축-2-state-root">분석 축 2 — state root</a>
+<a class="level-2" href="#분석-축-3-artifact-ledger">분석 축 3 — artifact ledger</a>
+<a class="level-2" href="#분석-축-4-approval-gate">분석 축 4 — approval/gate</a>
+<a class="level-2" href="#분석-축-5-worker-process-orchestration">분석 축 5 — worker/process orchestration</a>
+<a class="level-2" href="#분석-축-6-recovery-resume">분석 축 6 — recovery/resume</a>
+<a class="level-2" href="#분석-축-7-evidence-replay-boundary">분석 축 7 — evidence/replay boundary</a>
+<a class="level-2" href="#이-프레임의-결론">이 프레임의 결론</a></nav>
     </aside>
     <article class="book-article" id="content">
       <p class="eyebrow">Chapter 02</p>
-      <h1>Chapter 02 — Agent 분류</h1>
-      <div class="book-nav top"><a class="book-prev" href="../chapters/01-research-question.html"><span>이전</span>연구 질문</a><a class="book-next" href="../chapters/03-common-architecture.html"><span>다음</span>공통 구조</a></div>
+      <h1>AI Agent / Harness / Workflow Orchestrator 구분</h1>
+      <div class="book-nav top"><a class="book-prev" href="../chapters/01-research-question.html"><span>이전</span>중심 질문</a><a class="book-next" href="../chapters/03-common-architecture.html"><span>다음</span>Gajae-Code</a></div>
       <div class="rendered-markdown">
-<h2 id="분류-기준">분류 기준</h2>
-<p>Agent를 나눌 때 가장 먼저 볼 것은 UI가 아니라 <strong>loop의 위치</strong>입니다. loop가 editor extension 안에서 도는지, CLI process 안에서 도는지, benchmark runner가 container를 몰고 있는지, 별도 coordinator가 worktree와 tmux를 관리하는지에 따라 agent의 장점과 실패 방식이 달라집니다.</p>
-<p>이 분류는 제품 브랜드를 영구히 고정하려는 표가 아닙니다. 하나의 프로젝트가 여러 층을 가질 수 있고, version이 바뀌면 위치도 바뀔 수 있습니다. 따라서 분류의 목적은 “어떤 제품이 어느 칸인가”보다 “어떤 evidence를 요구해야 하는가”를 정하는 데 있습니다.</p>
-<h2 id="여섯-계열">여섯 계열</h2>
+<p>Workflow Control Plane을 말하려면 먼저 세 층을 분리해야 한다. 많은 문서가 “agent”, “runner”, “harness”, “orchestrator”, “workflow”라는 단어를 섞어 쓰지만, 이 책에서는 의도적으로 구분한다. 구분의 목적은 용어 싸움이 아니라 claim을 정확히 평가하기 위해서다. 어떤 시스템이 단일 patch loop만 제공하는데 orchestrator라고 말하면 과장이고, 어떤 시스템이 workflow state와 recovery를 관리하는데 단순 agent라고 부르면 핵심을 놓친다.</p>
+<h2 id="세-층의-working-definition">세 층의 working definition</h2>
 <div class="table-wrap"><table>
-<thead><tr><th>계열</th><th>대표 예</th><th>loop/state 위치</th><th>먼저 확인할 것</th></tr></thead>
+<thead><tr><th>층</th><th>중심 단위</th><th>핵심 책임</th><th>대표 질문</th></tr></thead>
 <tbody>
-<tr><td>IDE embedded</td><td>Cline, Roo, Continue</td><td>editor extension, IDE state, index cache</td><td>active file, index freshness, approval UX, remote workspace routing</td></tr>
-<tr><td>CLI coding agent</td><td>OpenAI Codex CLI, Aider, Goose</td><td>local process, shell, git repo</td><td>tool loop, patch strategy, sandbox, configured test command</td></tr>
-<tr><td>Repo-local runner</td><td>SWE-agent, OpenHands, Agentless-style workflows</td><td>container/runtime/harness, benchmark trajectory</td><td>task reset, action parser, environment control, trajectory schema</td></tr>
-<tr><td>Workflow orchestrator</td><td>Gajae-Code, LazyCodex/OmO</td><td>command layer, plugin/hook, state root</td><td>manifest vs runtime-callability, artifact layout, recovery behavior</td></tr>
-<tr><td>Persistent runtime</td><td>Hermes Agent</td><td>long-running agent runtime, memory, gateway, cron/delegation</td><td>session persistence, toolsets, bridge identity, version drift</td></tr>
-<tr><td>Team/multi-agent</td><td>GJC team, coordinator-worker designs</td><td>queue, worktree/tmux/mailbox/process state</td><td>real worker process, mailbox, conflict handling, cleanup</td></tr>
+<tr><td>AI Agent</td><td><code>turn</code>, <code>message</code>, <code>tool call</code>, <code>patch</code>, <code>test run</code></td><td>목표를 받아 context를 만들고 tool/edit/test loop로 결과물을 만든다.</td><td>이 agent는 필요한 파일을 찾고 안전하게 수정하고 검증했는가?</td></tr>
+<tr><td>Harness</td><td><code>task</code>, <code>environment</code>, <code>trajectory</code>, <code>score</code>, <code>oracle</code></td><td>agent를 특정 환경에 넣고 실행·관찰·평가한다.</td><td>이 실행은 재현 가능하며 같은 task에서 비교 가능한가?</td></tr>
+<tr><td>Workflow Orchestrator / Control Plane</td><td><code>workflow</code>, <code>phase</code>, <code>state root</code>, <code>artifact</code>, <code>approval gate</code>, <code>worker</code>, <code>resume/recovery</code></td><td>agent/harness를 포함한 작업 흐름을 설계·통제·기록·복구한다.</td><td>이 시스템은 긴 작업을 단계화하고 증거와 복구 지점을 유지하는가?</td></tr>
 </tbody></table></div>
-<h2 id="왜-loop-위치가-중요한가">왜 loop 위치가 중요한가</h2>
-<p>IDE embedded agent는 사용자가 보고 있는 editor state와 강하게 붙어 있습니다. 그래서 UX는 자연스럽지만 hidden context와 stale index가 위험합니다. Continue의 source map은 Redux thunk 기반 stream flow와 codebase indexer를 보여주며, Roo는 task loop, condense, file context tracker, checkpoint가 분리되어 있습니다. 이런 구조에서는 “무슨 모델인가”보다 “어느 파일이 context에 들어갔는가”가 품질을 좌우합니다.</p>
-<p>CLI agent는 local repo와 shell에 가까워서 재현성이 좋습니다. Aider의 <code>RepoMap</code>은 context compression을 명시적으로 보여주는 좋은 예이고, Codex는 tool router, sandbox, apply patch handler가 분리되어 있습니다. 하지만 CLI 계열도 sandbox/approval profile, shell persistence, patch apply failure를 따로 봐야 합니다.</p>
-<p>Runner 계열은 benchmark와 trace에 강합니다. SWE-agent의 trajectory, OpenHands package source의 conversation/event store 같은 구조는 평가에 유리합니다. 반대로 실제 개발 UX와 remote sandbox lifecycle이 별도 문제가 됩니다.</p>
-<p>Workflow orchestrator와 persistent runtime은 단순 coding assistant보다 넓습니다. Gajae-Code는 deep-interview, ralplan, ultragoal, team command가 <code>.gjc</code> artifact를 만들고, Hermes는 memory, toolsets, gateway, cron, delegation으로 session을 넘어갑니다. 이 계열은 “patch를 잘 만들었나”만으로 평가하면 핵심을 놓칩니다.</p>
-<h2 id="중요한-구분">중요한 구분</h2>
-<div class="table-wrap"><table>
-<thead><tr><th>혼동</th><th>분리해서 볼 것</th></tr></thead>
-<tbody>
-<tr><td>manifest에 hook이 있다</td><td>실제 <code>$...</code> workflow가 runtime-callable인가</td></tr>
-<tr><td>source에 team runtime이 있다</td><td>live tmux/worktree worker가 실제로 돌고 recovery 되는가</td></tr>
-<tr><td>benchmark에서 pass했다</td><td>task family와 oracle이 실제 업무 실패를 덮지 않는가</td></tr>
-<tr><td>editor UX가 좋다</td><td>hidden index/context failure가 추적 가능한가</td></tr>
-<tr><td>smoke test가 통과했다</td><td>non-toy task completion과 artifact replay가 있는가</td></tr>
-</tbody></table></div>
-<h2 id="실패-패턴으로-다시-읽기">실패 패턴으로 다시 읽기</h2>
-<p>Public issue corpus는 prevalence evidence가 아닙니다. 하지만 failure taxonomy를 만드는 데는 유용합니다. context loss, bad edit application, sandbox friction, repeated loop, remote workspace mismatch는 서로 다른 계열에서 반복됩니다. 이 패턴은 “agent가 틀렸다”보다 “어느 layer가 실패했는가”를 묻도록 도와줍니다.</p>
-<h2 id="이-장의-결론">이 장의 결론</h2>
-<p>분류의 목적은 이름표 붙이기가 아니라 검증 질문을 고르는 것입니다. IDE 계열에는 index와 editor-state evidence를 요구하고, CLI 계열에는 shell/sandbox/edit evidence를 요구하고, runner 계열에는 trajectory를 요구하고, orchestrator 계열에는 durable state와 recovery proof를 요구해야 합니다.</p>
-<h2 id="더-읽기">더 읽기</h2>
-<ul><li><a href="../assets/evidence/source-level-architecture-atlas.md">Source-level architecture atlas</a></li><li><a href="../assets/evidence/agent-orchestration-comparison.md">Agent orchestration comparison</a></li><li><a href="../research/coding-agent-taxonomy.md">Coding agent taxonomy archive</a></li></ul>
+<p>이 정의로 보면 Gajae-Code, Hermes, LazyCodex/OmO는 모두 일반 agent 비교표의 마지막 줄에 놓기 어렵다. 세 시스템 모두 어떤 방식으로든 agent 실행의 바깥쪽에 workflow discipline을 얹는다. 다만 같은 orchestrator는 아니다. Gajae-Code는 repo-local phase orchestrator, Hermes는 persistent runtime/meta-orchestrator, LazyCodex/OmO는 Codex-embedded control overlay에 가깝다.</p>
+<h2 id="분석-축-1-phase-model">분석 축 1 — phase model</h2>
+<p>Workflow Orchestrator는 작업을 phase로 나눈다. 단일 agent loop는 “요청 → tool call → patch → test → 답변”으로 끝날 수 있다. 반면 orchestrator는 interview, planning, approval, execution, review, checkpoint, handoff 같은 phase를 만든다. Gajae-Code의 <code>deep-interview → ralplan → ultragoal → team</code>은 이 축에서 가장 선명하다. LazyCodex/OmO의 <code>$ulw-plan → $start-work → $ulw-loop</code> 계열도 phase model을 지향한다. Hermes는 고정된 coding phase보다 slash commands, skills, cron, delegation을 통해 다양한 workflow를 구성하는 runtime에 가깝다.</p>
+<h2 id="분석-축-2-state-root">분석 축 2 — state root</h2>
+<p>Control plane은 state가 어디에 남는지를 명확히 해야 한다. agent transcript만 남으면 긴 작업의 canonical state를 알기 어렵다. Gajae-Code는 <code>.gjc/_session-*</code> 아래 specs, plans, ultragoal goals, ledger, team state를 남긴다. LazyCodex/OmO는 <code>.omo/...</code> 계열 project memory, workflow ledgers, Codex plugin cache와 연결된다. Hermes는 <code>~/.hermes/</code> 아래 sessions, memory, skills, logs, cron state, gateway state를 갖는다. state root가 있다는 사실만으로 orchestrator가 되는 것은 아니지만, state root 없이 workflow orchestration을 주장하기는 어렵다.</p>
+<h2 id="분석-축-3-artifact-ledger">분석 축 3 — artifact ledger</h2>
+<p>좋은 orchestrator는 “완료했다”는 말보다 산출물 ledger를 남긴다. Gajae-Code replay에서는 deep-interview spec, ralplan planner/final artifacts, pending approval, ultragoal goals/ledger, team dry-run state가 남았다. LazyCodex/OmO docs는 <code>.omo/ulw-loop</code> 아래 brief/goals/ledger 같은 구조를 설명한다. Hermes는 tool results, trajectories, session history, scheduled job output, skills, memory updates가 runtime artifact가 된다. artifact ledger가 있어야 controller나 사람 reviewer가 claim을 검증할 수 있다.</p>
+<h2 id="분석-축-4-approval-gate">분석 축 4 — approval/gate</h2>
+<p>Workflow Control Plane은 위험한 실행을 gate로 통제한다. 단일 agent도 command approval을 가질 수 있지만 orchestrator의 gate는 phase 전환과 연결된다. 계획이 승인되기 전 실행하지 않는다든지, review artifact가 없으면 다음 goal을 막는다든지, mutation opt-in이 없으면 MCP bridge가 fail-closed하는 방식이다. Gajae-Code의 pending approval과 review blocker는 이 축의 중요한 신호다. Hermes는 tool approval, gateway command approval, cron delivery, MCP mutation opt-in 같은 넓은 운영 gate를 갖는다. LazyCodex/OmO는 Codex hook approval과 plugin capability approval에 묶인다.</p>
+<h2 id="분석-축-5-worker-process-orchestration">분석 축 5 — worker/process orchestration</h2>
+<p>Orchestrator라는 말은 worker coordination을 요구한다. role prompt를 여러 개 만든다고 충분하지 않다. 실제로는 worker identity, worktree/tmux/session, mailbox, task queue, heartbeat, cleanup, conflict policy가 필요하다. Gajae-Code의 <code>team --dry-run</code>은 state layout을 보여주지만 live tmux worker orchestration은 아직 다음 검증이다. Hermes의 <code>delegate_task</code>, background process, cron job, MCP/ACP bridge는 multi-worker control plane으로 볼 수 있다. LazyCodex/OmO는 Codex subagent/hook lifecycle과 연결되지만 실제 worker parity는 더 확인해야 한다.</p>
+<h2 id="분석-축-6-recovery-resume">분석 축 6 — recovery/resume</h2>
+<p>긴 coding workflow는 실패한다. 따라서 복구 지점이 없으면 demo는 가능해도 운영은 어렵다. recovery는 단순히 이전 transcript를 불러오는 것이 아니라, 현재 phase, pending artifact, blocked goal, worker state, approval state를 재구성하는 능력이다. Gajae-Code는 <code>.gjc</code> state가 이 가능성을 열어 주지만 corruption/recovery replay가 아직 필요하다. Hermes는 session resume, memory, background process, cron output, skill persistence를 통해 session 밖 runtime을 유지한다. LazyCodex/OmO는 <code>.omo</code> ledger가 근거가 되지만 stale state와 hook non-fire를 검증해야 한다.</p>
+<h2 id="분석-축-7-evidence-replay-boundary">분석 축 7 — evidence/replay boundary</h2>
+<p>마지막 축은 claim의 증거 경계다. source-confirmed claim은 “코드에 있다”는 뜻이고, runtime-confirmed claim은 “명령이 지금 성공했다”는 뜻이며, artifact-backed claim은 “실행 후 확인 가능한 durable artifact가 남았다”는 뜻이다. manifest-confirmed claim은 “선언되어 있다”는 뜻이지만 runtime callability를 보장하지 않는다. 이 구분이 없으면 LazyCodex/OmO의 plugin manifest와 실제 <code>$...</code> workflow 실행을 혼동하거나, Gajae-Code의 team dry-run과 live team을 혼동하거나, Hermes docs 최신 기능과 local installed runtime을 혼동하게 된다.</p>
+<h2 id="이-프레임의-결론">이 프레임의 결론</h2>
+<p>이 프레임을 적용하면 이 책의 구조가 자연스럽게 정리된다. Chapter 03은 phase/state/artifact가 가장 명확한 Gajae-Code를 본다. Chapter 04는 repo-local workflow를 넘어 persistent runtime으로 확장된 Hermes를 본다. Chapter 05는 Codex라는 강한 substrate 위에 workflow overlay를 얹는 LazyCodex/OmO를 본다. Chapter 06은 이 셋을 같은 축으로 비교해 coding agent가 어느 방향으로 발전하는지 정리한다.</p>
       </div>
-      <div class="book-nav bottom"><a class="book-prev" href="../chapters/01-research-question.html"><span>이전</span>연구 질문</a><a class="book-next" href="../chapters/03-common-architecture.html"><span>다음</span>공통 구조</a></div>
+      <div class="book-nav bottom"><a class="book-prev" href="../chapters/01-research-question.html"><span>이전</span>중심 질문</a><a class="book-next" href="../chapters/03-common-architecture.html"><span>다음</span>Gajae-Code</a></div>
       <footer class="article-footer">
-        <p>이 페이지는 repository의 source Markdown에서 생성된 public HTML book page입니다. 세부 evidence artifact는 <a href="../appendix/evidence-index.html">Evidence index</a>에서 확인하세요.</p>
+        <p>본문의 근거와 판정 라벨은 <a href="../appendix/evidence-index.html">Evidence index</a>에서 함께 추적한다.</p>
       </footer>
     </article>
   </main>
-  <script src="../script.js?v=20260628-quality"></script>
+  <script src="../script.js?v=20260629-orchestrator"></script>
 </body>
 </html>

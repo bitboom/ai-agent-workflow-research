@@ -3,21 +3,21 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Appendix — Evidence index — AI Coding Agent 구조 해부</title>
-  <meta name="description" content="이 페이지는 본문에서 생략한 상세 근거의 위치를 안내합니다. 본문은 독서 흐름을 위해 짧게 유지하고, source path·runtime command·artifact inventory·controller cross-check는 이 부록에서 찾도록 분리했습니다.">
+  <title>Evidence Index — Workflow Orchestrator Claims — Workflow Control Plane 분석</title>
+  <meta name="description" content="이 Appendix는 본문 claim의 근거를 찾기 위한 ledger다. 본문은 목적, 분류, deep dive, 비교를 먼저 보여주고, 여기서는 어떤 claim이 어떤 source/runtime/artifact/provenance에 기대는지 분리한다. 특히 이 프로젝트는 Ga">
   <meta name="robots" content="index, follow">
   <link rel="canonical" href="https://bitboom.github.io/ai-agent-workflow-research/appendix/evidence-index.html">
   <link rel="prev" href="https://bitboom.github.io/ai-agent-workflow-research/chapters/07-caveats-and-next.html">
   <meta property="og:locale" content="ko_KR">
   <meta property="og:site_name" content="AI Agent Workflow Research">
   <meta property="og:type" content="article">
-  <meta property="og:title" content="Appendix — Evidence index">
-  <meta property="og:description" content="이 페이지는 본문에서 생략한 상세 근거의 위치를 안내합니다. 본문은 독서 흐름을 위해 짧게 유지하고, source path·runtime command·artifact inventory·controller cross-check는 이 부록에서 찾도록 분리했습니다.">
+  <meta property="og:title" content="Evidence Index — Workflow Orchestrator Claims">
+  <meta property="og:description" content="이 Appendix는 본문 claim의 근거를 찾기 위한 ledger다. 본문은 목적, 분류, deep dive, 비교를 먼저 보여주고, 여기서는 어떤 claim이 어떤 source/runtime/artifact/provenance에 기대는지 분리한다. 특히 이 프로젝트는 Ga">
   <meta property="og:url" content="https://bitboom.github.io/ai-agent-workflow-research/appendix/evidence-index.html">
   <meta property="og:image" content="https://bitboom.github.io/ai-agent-workflow-research/assets/og-image.svg">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="Appendix — Evidence index">
-  <meta name="twitter:description" content="이 페이지는 본문에서 생략한 상세 근거의 위치를 안내합니다. 본문은 독서 흐름을 위해 짧게 유지하고, source path·runtime command·artifact inventory·controller cross-check는 이 부록에서 찾도록 분리했습니다.">
+  <meta name="twitter:title" content="Evidence Index — Workflow Orchestrator Claims">
+  <meta name="twitter:description" content="이 Appendix는 본문 claim의 근거를 찾기 위한 ledger다. 본문은 목적, 분류, deep dive, 비교를 먼저 보여주고, 여기서는 어떤 claim이 어떤 source/runtime/artifact/provenance에 기대는지 분리한다. 특히 이 프로젝트는 Ga">
   <meta name="twitter:image" content="https://bitboom.github.io/ai-agent-workflow-research/assets/og-image.svg">
   <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -30,13 +30,13 @@
   <div class="progress" aria-hidden="true"><span id="reading-progress"></span></div>
   <header class="site-header">
     <a class="brand" href="../index.html" aria-label="첫 화면으로 이동">
-      <span class="brand-mark">AGENT</span>
-      <span>Architecture Book</span>
+      <span class="brand-mark">CONTROL</span>
+      <span>Workflow Book</span>
     </a>
     <nav class="top-nav" aria-label="상단 메뉴">
       <a href="../index.html#contents">목차</a>
-      <a href="../index.html#architecture">공통 구조</a>
-      <a href="../index.html#control-planes">Control planes</a>
+      <a href="../index.html#taxonomy">분석 프레임</a>
+      <a href="../index.html#control-planes">Orchestrators</a>
       <a href="../appendix/evidence-index.html">근거</a>
       <a class="button button-small" href="https://github.com/bitboom/ai-agent-workflow-research" target="_blank" rel="noopener">GitHub</a>
     </nav>
@@ -48,91 +48,93 @@
     <aside class="toc book-sidebar" id="site-toc" aria-label="책 목차">
       <p class="toc-title">Book</p>
       <nav class="chapter-nav"><a class="" href="../chapters/index.html"><span>Contents</span>목차</a>
-<a class="" href="../chapters/01-research-question.html"><span>Chapter 01</span>연구 질문</a>
-<a class="" href="../chapters/02-agent-taxonomy.html"><span>Chapter 02</span>Agent 분류</a>
-<a class="" href="../chapters/03-common-architecture.html"><span>Chapter 03</span>공통 구조</a>
-<a class="" href="../chapters/04-implementation-atlas.html"><span>Chapter 04</span>구현체 지도</a>
-<a class="" href="../chapters/05-control-plane-triad.html"><span>Chapter 05</span>Control planes</a>
-<a class="" href="../chapters/06-evaluation-framework.html"><span>Chapter 06</span>평가</a>
-<a class="" href="../chapters/07-caveats-and-next.html"><span>Chapter 07</span>다음 실험</a>
+<a class="" href="../chapters/01-research-question.html"><span>Chapter 01</span>중심 질문</a>
+<a class="" href="../chapters/02-agent-taxonomy.html"><span>Chapter 02</span>분석 프레임</a>
+<a class="" href="../chapters/03-common-architecture.html"><span>Chapter 03</span>Gajae-Code</a>
+<a class="" href="../chapters/04-implementation-atlas.html"><span>Chapter 04</span>Hermes</a>
+<a class="" href="../chapters/05-control-plane-triad.html"><span>Chapter 05</span>LazyCodex/OmO</a>
+<a class="" href="../chapters/06-evaluation-framework.html"><span>Chapter 06</span>비교</a>
+<a class="" href="../chapters/07-caveats-and-next.html"><span>Chapter 07</span>다음 검증</a>
 <a class="active" aria-current="page" href="../appendix/evidence-index.html"><span>Appendix</span>Evidence index</a></nav>
       <p class="toc-title section-toc-title">On this page</p>
-      <nav class="page-toc"><a class="level-2" href="#how-to-use-this-appendix">How to use this appendix</a>
-<a class="level-2" href="#evidence-ladder">Evidence ladder</a>
-<a class="level-2" href="#canonical-controller-reviewed">Canonical / controller-reviewed</a>
-<a class="level-2" href="#control-plane-deep-dives">Control-plane deep dives</a>
-<a class="level-2" href="#research-chapters-retained-as-archive">Research chapters retained as archive</a>
-<a class="level-2" href="#claim-to-evidence-map">Claim-to-evidence map</a>
-<a class="level-2" href="#public-evidence-policy">Public evidence policy</a>
-<a class="level-2" href="#reader-note">Reader note</a></nav>
+      <nav class="page-toc"><a class="level-2" href="#public-evidence-policy">Public evidence policy</a>
+<a class="level-2" href="#canonical-orchestrator-evidence">Canonical orchestrator evidence</a>
+<a class="level-2" href="#gajae-code-evidence-reading-guide">Gajae-Code evidence reading guide</a>
+<a class="level-2" href="#hermes-evidence-reading-guide">Hermes evidence reading guide</a>
+<a class="level-2" href="#lazycodex-omo-evidence-reading-guide">LazyCodex / OmO evidence reading guide</a>
+<a class="level-2" href="#background-agent-atlas">Background agent atlas</a>
+<a class="level-2" href="#research-notes-and-provenance">Research notes and provenance</a>
+<a class="level-2" href="#provenance-archive">Provenance archive</a>
+<a class="level-2" href="#evidence-label-glossary">Evidence label glossary</a>
+<a class="level-2" href="#maintenance-rule">Maintenance rule</a></nav>
     </aside>
     <article class="book-article" id="content">
       <p class="eyebrow">Appendix</p>
-      <h1>Appendix — Evidence index</h1>
-      <div class="book-nav top"><a class="book-prev" href="../chapters/07-caveats-and-next.html"><span>이전</span>다음 실험</a><span></span></div>
+      <h1>Evidence Index — Workflow Orchestrator Claims</h1>
+      <div class="book-nav top"><a class="book-prev" href="../chapters/07-caveats-and-next.html"><span>이전</span>다음 검증</a><span></span></div>
       <div class="rendered-markdown">
-<p>이 페이지는 본문에서 생략한 상세 근거의 위치를 안내합니다. 본문은 독서 흐름을 위해 짧게 유지하고, source path·runtime command·artifact inventory·controller cross-check는 이 부록에서 찾도록 분리했습니다.</p>
-<h2 id="how-to-use-this-appendix">How to use this appendix</h2>
-<ol><li>먼저 본문에서 claim의 라벨을 확인합니다.</li><li>아래 표에서 해당 claim의 evidence file을 엽니다.</li><li>source-confirmed, runtime-confirmed, artifact-backed가 서로 섞이지 않았는지 확인합니다.</li><li>raw local state, provider config, private log는 public evidence에 없다는 점을 전제로 읽습니다.</li><li>public issue corpus는 failure taxonomy로만 읽고 prevalence로 읽지 않습니다.</li></ol>
-<h2 id="evidence-ladder">Evidence ladder</h2>
-<div class="table-wrap"><table>
-<thead><tr><th>Tier</th><th>이 부록에서의 의미</th><th>Public claim 사용법</th></tr></thead>
-<tbody>
-<tr><td>Source path</td><td>repo/package/docs에서 구현 경로 확인</td><td>architecture axis 설명 가능</td></tr>
-<tr><td>Runtime smoke</td><td>version/help/basic command 실행 확인</td><td>tool exists/callable 범위만 말함</td></tr>
-<tr><td>Workflow artifact</td><td>실행 뒤 sanitized state/ledger/map 확인</td><td>durable behavior 일부 설명 가능</td></tr>
-<tr><td>Live task trace</td><td>실제 non-toy task run + verification</td><td>task-family evidence로 사용 가능</td></tr>
-<tr><td>General claim</td><td>여러 task/환경 반복 proof</td><td>아직 이 문서에서는 제한적으로만 사용</td></tr>
-</tbody></table></div>
-<h2 id="canonical-controller-reviewed">Canonical / controller-reviewed</h2>
-<div class="table-wrap"><table>
-<thead><tr><th>목적</th><th>파일</th><th>역할</th></tr></thead>
-<tbody>
-<tr><td>전체 source-level map</td><td><a href="../assets/evidence/source-level-architecture-atlas.md">source-level-architecture-atlas.md</a></td><td>구현체별 loop/context/edit/sandbox/state anchor</td></tr>
-<tr><td>agent orchestration comparison</td><td><a href="../assets/evidence/agent-orchestration-comparison.md">agent-orchestration-comparison.md</a></td><td>Gajae/Hermes/OmO 등 orchestration proof status</td></tr>
-<tr><td>reconciled facts</td><td><a href="../assets/evidence/reconciled-facts.md">reconciled-facts.md</a></td><td>agent output과 controller cross-check 차이 정리</td></tr>
-<tr><td>controller cross-check</td><td><a href="../assets/evidence/coding-agent-underhood-crosscheck.md">coding-agent-underhood-crosscheck.md</a></td><td>UltraResearch 수정 및 confidence 조정</td></tr>
-<tr><td>public issue/failure patterns</td><td><a href="../assets/evidence/source-level-architecture-atlas.md#public-failure-pattern-corpus-draft">source-level-architecture-atlas.md</a></td><td>diagnostic taxonomy, not prevalence</td></tr>
-</tbody></table></div>
-<h2 id="control-plane-deep-dives">Control-plane deep dives</h2>
-<div class="table-wrap"><table>
-<thead><tr><th>시스템</th><th>Narrative</th><th>Evidence</th></tr></thead>
-<tbody>
-<tr><td>Gajae-Code</td><td><a href="../research/deep-dive-gajae-code.md">deep-dive-gajae-code.md</a></td><td><a href="../assets/evidence/gajae-code-runtime-smoke.md">runtime smoke</a>, <a href="../assets/evidence/gajae-code-workflow-replay.md">workflow replay</a>, <a href="../assets/evidence/gajae-code-crosscheck.md">crosscheck</a></td></tr>
-<tr><td>Hermes Agent</td><td><a href="../research/deep-dive-hermes-agent.md">deep-dive-hermes-agent.md</a></td><td><a href="../assets/evidence/hermes-local-version-drift.md">version drift</a>, <a href="../assets/evidence/hermes-crosscheck.md">crosscheck</a></td></tr>
-<tr><td>LazyCodex/OmO</td><td><a href="../research/deep-dive-lazycodex-omo.md">deep-dive-lazycodex-omo.md</a></td><td><a href="../assets/evidence/lazycodex-runtime-callable-surface.md">runtime-callable surface</a>, <a href="../assets/evidence/lazycodex-crosscheck.md">crosscheck</a>, <a href="../assets/evidence/codex-baseline.md">codex baseline</a></td></tr>
-</tbody></table></div>
-<h2 id="research-chapters-retained-as-archive">Research chapters retained as archive</h2>
-<div class="table-wrap"><table>
-<thead><tr><th>목적</th><th>파일</th><th>비고</th></tr></thead>
-<tbody>
-<tr><td>UltraResearch draft/hypothesis</td><td><a href="../research/coding-agent-underhood-ultraresearch.md">coding-agent-underhood-ultraresearch.md</a></td><td>canonical source가 아니라 controller 검토 대상</td></tr>
-<tr><td>taxonomy details</td><td><a href="../research/coding-agent-taxonomy.md">coding-agent-taxonomy.md</a></td><td>agent 계열 분류의 상세 note</td></tr>
-<tr><td>source map</td><td><a href="../research/coding-agent-source-map.md">coding-agent-source-map.md</a></td><td>papers, repos, docs, issue sweep anchor</td></tr>
-<tr><td>evaluation framework</td><td><a href="../research/coding-agent-evaluation-framework.md">coding-agent-evaluation-framework.md</a></td><td>rubric, trace schema, benchmark plan</td></tr>
-<tr><td>open questions</td><td><a href="../research/coding-agent-open-questions.md">coding-agent-open-questions.md</a></td><td>아직 닫히지 않은 research 질문</td></tr>
-</tbody></table></div>
-<h2 id="claim-to-evidence-map">Claim-to-evidence map</h2>
-<div class="table-wrap"><table>
-<thead><tr><th>본문 claim</th><th>가장 가까운 evidence</th><th>Caveat</th></tr></thead>
-<tbody>
-<tr><td>Codex/Aider/SWE-agent/OpenHands/IDE 계열은 source-level path로 읽을 수 있다</td><td>source-level architecture atlas</td><td>line-level excerpt는 다음 deep-dive에서 보강 필요</td></tr>
-<tr><td>Gajae workflow surfaces are runtime-callable</td><td>Gajae workflow replay</td><td>live team/recovery/Hermes bridge는 미증명</td></tr>
-<tr><td>Hermes는 persistent runtime이다</td><td>Hermes source paths + local version drift note</td><td>local runtime과 source clone version 차이를 혼동하지 말 것</td></tr>
-<tr><td>OmO는 plugin/harness layer다</td><td>LazyCodex/OmO crosscheck + runtime-callable surface note</td><td>manifest와 actual <code>$...</code> command proof 분리 필요</td></tr>
-<tr><td>benchmark pilot은 아직 이르다</td><td>evaluation framework</td><td>rubric/task template/trace schema가 먼저 필요</td></tr>
-</tbody></table></div>
+<p>이 Appendix는 본문 claim의 근거를 찾기 위한 ledger다. 본문은 목적, 분류, deep dive, 비교를 먼저 보여주고, 여기서는 어떤 claim이 어떤 source/runtime/artifact/provenance에 기대는지 분리한다. 특히 이 프로젝트는 Gajae-Code, Hermes Agent, LazyCodex/OmO를 일반 AI Agent가 아니라 Workflow Control Plane / Workflow Orchestrator 관점에서 분석하므로, evidence 역시 세 시스템을 먼저 배치한다.</p>
 <h2 id="public-evidence-policy">Public evidence policy</h2>
-<ul><li>Raw <code>.gjc/</code>, <code>.omo</code>, provider config, private plugin cache, full local logs는 커밋하지 않습니다.</li><li>API key, token, password, connection string, private endpoint는 <code>[REDACTED]</code> 처리하거나 기록하지 않습니다.</li><li>로컬 절대경로는 public-safe summary에서 제거합니다.</li><li>Controller가 직접 확인한 source/runtime/artifact만 canonical claim으로 승격합니다.</li><li>Agent-generated research note는 draft/hypothesis로 남깁니다.</li><li>Public issue corpus는 failure category evidence일 뿐 제품별 빈도·품질 순위 근거가 아닙니다.</li></ul>
-<h2 id="reader-note">Reader note</h2>
-<p>Evidence 파일 일부는 intentionally raw Markdown입니다. 그것들은 책 본문이 아니라 source/evidence artifact 역할을 합니다. 읽기용 본문은 <code>chapters/*.html</code>과 이 부록 HTML을 기준으로 삼고, 세부 근거를 확인할 때 raw evidence를 엽니다. 이 분리는 독서 경험과 검증 가능성을 동시에 유지하기 위한 의도적 구조입니다.</p>
+<p>public evidence는 다섯 가지 원칙을 따른다. 첫째, raw credentials, API keys, provider tokens, password, connection string은 기록하지 않는다. 둘째, raw <code>.gjc</code>, <code>.omo</code>, Hermes logs 전체를 그대로 publish하지 않고 sanitized controller summary와 artifact map만 남긴다. 셋째, local absolute path와 private chat detail은 public report에 필요한 최소 수준으로만 일반화한다. 넷째, UltraResearch나 agent-generated draft는 hypothesis로 취급하고 controller cross-check 없이 canonical claim으로 승격하지 않는다. 다섯째, <code>source-confirmed</code>, <code>runtime-confirmed</code>, <code>artifact-backed</code>, <code>manifest-confirmed</code>, <code>unverified</code>를 하나의 confidence 숫자로 뭉개지 않는다.</p>
+<h2 id="canonical-orchestrator-evidence">Canonical orchestrator evidence</h2>
+<div class="table-wrap"><table>
+<thead><tr><th>대상</th><th>Evidence file</th><th>라벨</th><th>본문에서 쓰는 의미</th></tr></thead>
+<tbody>
+<tr><td>Gajae-Code</td><td><a href="../assets/evidence/gajae-code-workflow-replay.md">gajae-code-workflow-replay.md</a></td><td>runtime-confirmed, artifact-backed</td><td><code>deep-interview</code>, <code>ralplan</code>, <code>ultragoal</code>, <code>team --dry-run</code>이 <code>.gjc/_session-*</code> artifacts를 남긴 controlled replay.</td></tr>
+<tr><td>Gajae-Code</td><td><a href="../assets/evidence/gajae-code-runtime-smoke.md">gajae-code-runtime-smoke.md</a></td><td>runtime-confirmed</td><td><code>gjc/0.7.3</code> basic command/smoke surface 확인.</td></tr>
+<tr><td>Gajae-Code</td><td><a href="../assets/evidence/gajae-code-crosscheck.md">gajae-code-crosscheck.md</a></td><td>source-confirmed</td><td>public repo/npm/docs, Hermes bridge docs, owner drift caveat.</td></tr>
+<tr><td>Gajae-Code</td><td><a href="../assets/evidence/gjc-documentation-review.md">gjc-documentation-review.md</a></td><td>source-confirmed</td><td>Gajae docs의 workflow, bridge, runner framing review.</td></tr>
+<tr><td>Hermes Agent</td><td><a href="../assets/evidence/hermes-crosscheck.md">hermes-crosscheck.md</a></td><td>source-confirmed, runtime-confirmed</td><td>Hermes를 persistent coordinator/runtime으로 해석하는 근거.</td></tr>
+<tr><td>Hermes Agent</td><td><a href="../assets/evidence/hermes-local-version-drift.md">hermes-local-version-drift.md</a></td><td>runtime-confirmed, caveat</td><td>local runtime과 source/docs 최신 기능을 분리해야 한다는 근거.</td></tr>
+<tr><td>LazyCodex / OmO</td><td><a href="../assets/evidence/lazycodex-crosscheck.md">lazycodex-crosscheck.md</a></td><td>source-confirmed, manifest-confirmed, runtime-confirmed</td><td>Codex plugin/harness layer, hooks/MCP/workflow declarations, install state.</td></tr>
+<tr><td>LazyCodex / OmO</td><td><a href="../assets/evidence/lazycodex-runtime-callable-surface.md">lazycodex-runtime-callable-surface.md</a></td><td>runtime evidence / caveat</td><td><code>$...</code> workflow command surface와 callability gap을 추적하기 위한 근거.</td></tr>
+<tr><td>세 시스템 비교</td><td><a href="../assets/evidence/agent-orchestration-comparison.md">agent-orchestration-comparison.md</a></td><td>synthesized controller evidence</td><td>state root, workflow abstraction, proof/missing proof, failure mode 비교.</td></tr>
+<tr><td>충돌 정리</td><td><a href="../assets/evidence/reconciled-facts.md">reconciled-facts.md</a></td><td>controller adjudication</td><td>agent draft와 controller check가 충돌할 때 canonical facts를 정리.</td></tr>
+</tbody></table></div>
+<h2 id="gajae-code-evidence-reading-guide">Gajae-Code evidence reading guide</h2>
+<p>Gajae-Code는 현재 세 시스템 중 artifact-backed evidence가 가장 탄탄하다. <code>gajae-code-workflow-replay.md</code>는 tiny isolated fixture repo에서 <code>deep-interview</code>, <code>ralplan</code>, <code>ultragoal</code>, <code>team --dry-run</code> command surfaces가 runtime-callable하고 <code>.gjc/_session-*</code> 아래 state/spec/plan/ledger/team artifacts를 쓰는 것을 정리한다. 이 evidence 때문에 Chapter 03은 Gajae-Code를 repo-local Workflow Orchestrator로 분류한다.</p>
+<p>하지만 같은 evidence가 live team을 증명하지는 않는다. <code>team --dry-run</code>은 config, manifest, task, event layout을 보여주지만 실제 tmux worker startup, heartbeat, worktree cleanup, orphan recovery를 보여주지 않는다. 따라서 live non-dry-run team, recovery/resume, Hermes bridge는 Chapter 07의 next probes로 남긴다.</p>
+<h2 id="hermes-evidence-reading-guide">Hermes evidence reading guide</h2>
+<p>Hermes evidence는 범위가 넓지만 feature별 replay는 더 필요하다. <code>hermes-crosscheck.md</code>는 Hermes를 persistent coordinator/runtime으로 보는 근거를 요약한다. memory, skills, messaging gateway, cron, delegation, MCP integration 같은 surface는 단일 coding agent loop보다 넓은 runtime 책임을 보여준다. local gateway running과 platform configuration은 runtime observation이다.</p>
+<p>다만 Hermes는 version drift를 조심해야 한다. docs나 source clone에서 보이는 기능이 local installed gateway에 그대로 적용되어 있다고 단정하면 안 된다. 그래서 <code>hermes-local-version-drift.md</code>는 local observation과 source/docs claim을 분리하기 위한 caveat evidence다. Chapter 04는 Hermes를 완성된 특정 coding workflow orchestrator가 아니라 persistent meta-orchestrator로 분류한다.</p>
+<h2 id="lazycodex-omo-evidence-reading-guide">LazyCodex / OmO evidence reading guide</h2>
+<p>LazyCodex/OmO evidence에서 가장 중요한 구분은 manifest와 runtime이다. <code>lazycodex-crosscheck.md</code>는 install/version/plugin manifest, hooks, MCP declarations, docs의 workflow descriptions를 정리한다. 이 근거는 Codex-embedded control overlay라는 분류를 지지한다. 그러나 manifest-declared hook이나 MCP server가 실제 Codex session에서 언제나 callable하다는 뜻은 아니다.</p>
+<p><code>lazycodex-runtime-callable-surface.md</code>는 바로 이 gap을 추적한다. <code>$ultraresearch</code>, <code>$ulw-plan</code>, <code>$start-work</code>, <code>$ulw-loop</code> 같은 workflow commands는 Codex composer/TUI/App 표면과 non-interactive execution 표면에서 차이가 날 수 있다. 따라서 Chapter 05는 LazyCodex/OmO를 standalone orchestrator라고 강하게 단정하지 않고, Codex-embedded Workflow Harness / Control Overlay 및 plugin-based orchestrator candidate로 둔다.</p>
+<h2 id="background-agent-atlas">Background agent atlas</h2>
+<div class="table-wrap"><table>
+<thead><tr><th>Evidence file</th><th>역할</th></tr></thead>
+<tbody>
+<tr><td><a href="../assets/evidence/source-level-architecture-atlas.md">source-level-architecture-atlas.md</a></td><td>Codex, Aider, SWE-agent, OpenHands, Hermes 등 source-level architecture map. 본문의 배경 지도로 쓴다.</td></tr>
+<tr><td><a href="../assets/evidence/coding-agent-underhood-crosscheck.md">coding-agent-underhood-crosscheck.md</a></td><td>under-the-hood controller cross-check와 source/path 정리.</td></tr>
+<tr><td><a href="../assets/evidence/codex-baseline.md">codex-baseline.md</a></td><td>Codex CLI baseline observation.</td></tr>
+</tbody></table></div>
+<p>이 background evidence는 기준선으로 필요하다. 일반 AI Agent와 Harness baseline을 알아야 Workflow Orchestrator가 무엇을 추가하는지 보인다. 그러나 본문 narrative는 Gajae/Hermes/LazyCodex deep dive를 중심으로 유지한다.</p>
+<h2 id="research-notes-and-provenance">Research notes and provenance</h2>
+<div class="table-wrap"><table>
+<thead><tr><th>Research source</th><th>역할</th></tr></thead>
+<tbody>
+<tr><td><a href="../research/coding-agent-underhood-ultraresearch.md">coding-agent-underhood-ultraresearch.md</a></td><td>UltraResearch hypothesis note.</td></tr>
+<tr><td><a href="../research/coding-agent-taxonomy.md">coding-agent-taxonomy.md</a></td><td>taxonomy background for Chapter 02.</td></tr>
+<tr><td><a href="../research/coding-agent-source-map.md">coding-agent-source-map.md</a></td><td>source map note, read together with the source atlas.</td></tr>
+<tr><td><a href="../research/coding-agent-evaluation-framework.md">coding-agent-evaluation-framework.md</a></td><td>evaluation rubric background for Chapter 06/07.</td></tr>
+<tr><td><a href="../research/coding-agent-open-questions.md">coding-agent-open-questions.md</a></td><td>open questions note.</td></tr>
+<tr><td><a href="../research/deep-dive-gajae-code.md">deep-dive-gajae-code.md</a></td><td>Gajae deep dive source note.</td></tr>
+<tr><td><a href="../research/deep-dive-hermes-agent.md">deep-dive-hermes-agent.md</a></td><td>Hermes deep dive source note.</td></tr>
+<tr><td><a href="../research/deep-dive-lazycodex-omo.md">deep-dive-lazycodex-omo.md</a></td><td>LazyCodex/OmO deep dive source note.</td></tr>
+</tbody></table></div>
+<h2 id="provenance-archive">Provenance archive</h2>
+<p>UltraResearch, controller cross-check, artifact replay는 이 프로젝트의 provenance다. public book의 첫 화면과 본문은 그 과정보다 판단 기준과 결론을 먼저 보여준다. 독자는 본문을 먼저 읽고, claim을 검증하고 싶을 때 이 Appendix에서 source/runtime/artifact/provenance를 역추적하면 된다.</p>
+<h2 id="evidence-label-glossary">Evidence label glossary</h2>
+<ul><li><code>source-confirmed</code>: repo source, package source, official docs에서 확인했다.</li><li><code>runtime-confirmed</code>: 현재 환경에서 command가 성공했다.</li><li><code>artifact-backed</code>: 실행 후 durable artifact가 남았다.</li><li><code>manifest-confirmed</code>: plugin manifest/docs에 선언되어 있다. runtime callability는 별도다.</li><li><code>unverified</code>: 아직 source/runtime/artifact proof가 부족하다.</li></ul>
+<h2 id="maintenance-rule">Maintenance rule</h2>
+<p>새 evidence가 생기면 먼저 이 index의 canonical orchestrator evidence section에 추가한다. 그 다음 해당 chapter의 라벨을 갱신한다. 일반 agent atlas는 background section에 유지한다. provenance가 길어지면 이 Appendix에 넣고, 첫 화면과 본문은 Workflow Control Plane thesis를 유지한다.</p>
       </div>
-      <div class="book-nav bottom"><a class="book-prev" href="../chapters/07-caveats-and-next.html"><span>이전</span>다음 실험</a><span></span></div>
+      <div class="book-nav bottom"><a class="book-prev" href="../chapters/07-caveats-and-next.html"><span>이전</span>다음 검증</a><span></span></div>
       <footer class="article-footer">
-        <p>이 페이지는 repository의 source Markdown에서 생성된 public HTML book page입니다. 세부 evidence artifact는 <a href="../appendix/evidence-index.html">Evidence index</a>에서 확인하세요.</p>
+        <p>본문의 근거와 판정 라벨은 <a href="../appendix/evidence-index.html">Evidence index</a>에서 함께 추적한다.</p>
       </footer>
     </article>
   </main>
-  <script src="../script.js?v=20260628-quality"></script>
+  <script src="../script.js?v=20260629-orchestrator"></script>
 </body>
 </html>

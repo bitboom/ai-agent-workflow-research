@@ -1,54 +1,47 @@
-# Chapter 02 — Agent 분류
+# AI Agent / Harness / Workflow Orchestrator 구분
 
-[← 연구 질문](01-research-question.md) · [다음: 공통 아키텍처 →](03-common-architecture.md)
+[← 목차](README.md)
 
-## 분류 기준
+Workflow Control Plane을 말하려면 먼저 세 층을 분리해야 한다. 많은 문서가 “agent”, “runner”, “harness”, “orchestrator”, “workflow”라는 단어를 섞어 쓰지만, 이 책에서는 의도적으로 구분한다. 구분의 목적은 용어 싸움이 아니라 claim을 정확히 평가하기 위해서다. 어떤 시스템이 단일 patch loop만 제공하는데 orchestrator라고 말하면 과장이고, 어떤 시스템이 workflow state와 recovery를 관리하는데 단순 agent라고 부르면 핵심을 놓친다.
 
-Agent를 나눌 때 가장 먼저 볼 것은 UI가 아니라 **loop의 위치**입니다. loop가 editor extension 안에서 도는지, CLI process 안에서 도는지, benchmark runner가 container를 몰고 있는지, 별도 coordinator가 worktree와 tmux를 관리하는지에 따라 agent의 장점과 실패 방식이 달라집니다.
+## 세 층의 working definition
 
-이 분류는 제품 브랜드를 영구히 고정하려는 표가 아닙니다. 하나의 프로젝트가 여러 층을 가질 수 있고, version이 바뀌면 위치도 바뀔 수 있습니다. 따라서 분류의 목적은 “어떤 제품이 어느 칸인가”보다 “어떤 evidence를 요구해야 하는가”를 정하는 데 있습니다.
-
-## 여섯 계열
-
-| 계열 | 대표 예 | loop/state 위치 | 먼저 확인할 것 |
+| 층 | 중심 단위 | 핵심 책임 | 대표 질문 |
 | --- | --- | --- | --- |
-| IDE embedded | Cline, Roo, Continue | editor extension, IDE state, index cache | active file, index freshness, approval UX, remote workspace routing |
-| CLI coding agent | OpenAI Codex CLI, Aider, Goose | local process, shell, git repo | tool loop, patch strategy, sandbox, configured test command |
-| Repo-local runner | SWE-agent, OpenHands, Agentless-style workflows | container/runtime/harness, benchmark trajectory | task reset, action parser, environment control, trajectory schema |
-| Workflow orchestrator | Gajae-Code, LazyCodex/OmO | command layer, plugin/hook, state root | manifest vs runtime-callability, artifact layout, recovery behavior |
-| Persistent runtime | Hermes Agent | long-running agent runtime, memory, gateway, cron/delegation | session persistence, toolsets, bridge identity, version drift |
-| Team/multi-agent | GJC team, coordinator-worker designs | queue, worktree/tmux/mailbox/process state | real worker process, mailbox, conflict handling, cleanup |
+| AI Agent | `turn`, `message`, `tool call`, `patch`, `test run` | 목표를 받아 context를 만들고 tool/edit/test loop로 결과물을 만든다. | 이 agent는 필요한 파일을 찾고 안전하게 수정하고 검증했는가? |
+| Harness | `task`, `environment`, `trajectory`, `score`, `oracle` | agent를 특정 환경에 넣고 실행·관찰·평가한다. | 이 실행은 재현 가능하며 같은 task에서 비교 가능한가? |
+| Workflow Orchestrator / Control Plane | `workflow`, `phase`, `state root`, `artifact`, `approval gate`, `worker`, `resume/recovery` | agent/harness를 포함한 작업 흐름을 설계·통제·기록·복구한다. | 이 시스템은 긴 작업을 단계화하고 증거와 복구 지점을 유지하는가? |
 
-## 왜 loop 위치가 중요한가
+이 정의로 보면 Gajae-Code, Hermes, LazyCodex/OmO는 모두 일반 agent 비교표의 마지막 줄에 놓기 어렵다. 세 시스템 모두 어떤 방식으로든 agent 실행의 바깥쪽에 workflow discipline을 얹는다. 다만 같은 orchestrator는 아니다. Gajae-Code는 repo-local phase orchestrator, Hermes는 persistent runtime/meta-orchestrator, LazyCodex/OmO는 Codex-embedded control overlay에 가깝다.
 
-IDE embedded agent는 사용자가 보고 있는 editor state와 강하게 붙어 있습니다. 그래서 UX는 자연스럽지만 hidden context와 stale index가 위험합니다. Continue의 source map은 Redux thunk 기반 stream flow와 codebase indexer를 보여주며, Roo는 task loop, condense, file context tracker, checkpoint가 분리되어 있습니다. 이런 구조에서는 “무슨 모델인가”보다 “어느 파일이 context에 들어갔는가”가 품질을 좌우합니다.
+## 분석 축 1 — phase model
 
-CLI agent는 local repo와 shell에 가까워서 재현성이 좋습니다. Aider의 `RepoMap`은 context compression을 명시적으로 보여주는 좋은 예이고, Codex는 tool router, sandbox, apply patch handler가 분리되어 있습니다. 하지만 CLI 계열도 sandbox/approval profile, shell persistence, patch apply failure를 따로 봐야 합니다.
+Workflow Orchestrator는 작업을 phase로 나눈다. 단일 agent loop는 “요청 → tool call → patch → test → 답변”으로 끝날 수 있다. 반면 orchestrator는 interview, planning, approval, execution, review, checkpoint, handoff 같은 phase를 만든다. Gajae-Code의 `deep-interview → ralplan → ultragoal → team`은 이 축에서 가장 선명하다. LazyCodex/OmO의 `$ulw-plan → $start-work → $ulw-loop` 계열도 phase model을 지향한다. Hermes는 고정된 coding phase보다 slash commands, skills, cron, delegation을 통해 다양한 workflow를 구성하는 runtime에 가깝다.
 
-Runner 계열은 benchmark와 trace에 강합니다. SWE-agent의 trajectory, OpenHands package source의 conversation/event store 같은 구조는 평가에 유리합니다. 반대로 실제 개발 UX와 remote sandbox lifecycle이 별도 문제가 됩니다.
+## 분석 축 2 — state root
 
-Workflow orchestrator와 persistent runtime은 단순 coding assistant보다 넓습니다. Gajae-Code는 deep-interview, ralplan, ultragoal, team command가 `.gjc` artifact를 만들고, Hermes는 memory, toolsets, gateway, cron, delegation으로 session을 넘어갑니다. 이 계열은 “patch를 잘 만들었나”만으로 평가하면 핵심을 놓칩니다.
+Control plane은 state가 어디에 남는지를 명확히 해야 한다. agent transcript만 남으면 긴 작업의 canonical state를 알기 어렵다. Gajae-Code는 `.gjc/_session-*` 아래 specs, plans, ultragoal goals, ledger, team state를 남긴다. LazyCodex/OmO는 `.omo/...` 계열 project memory, workflow ledgers, Codex plugin cache와 연결된다. Hermes는 `~/.hermes/` 아래 sessions, memory, skills, logs, cron state, gateway state를 갖는다. state root가 있다는 사실만으로 orchestrator가 되는 것은 아니지만, state root 없이 workflow orchestration을 주장하기는 어렵다.
 
-## 중요한 구분
+## 분석 축 3 — artifact ledger
 
-| 혼동 | 분리해서 볼 것 |
-| --- | --- |
-| manifest에 hook이 있다 | 실제 `$...` workflow가 runtime-callable인가 |
-| source에 team runtime이 있다 | live tmux/worktree worker가 실제로 돌고 recovery 되는가 |
-| benchmark에서 pass했다 | task family와 oracle이 실제 업무 실패를 덮지 않는가 |
-| editor UX가 좋다 | hidden index/context failure가 추적 가능한가 |
-| smoke test가 통과했다 | non-toy task completion과 artifact replay가 있는가 |
+좋은 orchestrator는 “완료했다”는 말보다 산출물 ledger를 남긴다. Gajae-Code replay에서는 deep-interview spec, ralplan planner/final artifacts, pending approval, ultragoal goals/ledger, team dry-run state가 남았다. LazyCodex/OmO docs는 `.omo/ulw-loop` 아래 brief/goals/ledger 같은 구조를 설명한다. Hermes는 tool results, trajectories, session history, scheduled job output, skills, memory updates가 runtime artifact가 된다. artifact ledger가 있어야 controller나 사람 reviewer가 claim을 검증할 수 있다.
 
-## 실패 패턴으로 다시 읽기
+## 분석 축 4 — approval/gate
 
-Public issue corpus는 prevalence evidence가 아닙니다. 하지만 failure taxonomy를 만드는 데는 유용합니다. context loss, bad edit application, sandbox friction, repeated loop, remote workspace mismatch는 서로 다른 계열에서 반복됩니다. 이 패턴은 “agent가 틀렸다”보다 “어느 layer가 실패했는가”를 묻도록 도와줍니다.
+Workflow Control Plane은 위험한 실행을 gate로 통제한다. 단일 agent도 command approval을 가질 수 있지만 orchestrator의 gate는 phase 전환과 연결된다. 계획이 승인되기 전 실행하지 않는다든지, review artifact가 없으면 다음 goal을 막는다든지, mutation opt-in이 없으면 MCP bridge가 fail-closed하는 방식이다. Gajae-Code의 pending approval과 review blocker는 이 축의 중요한 신호다. Hermes는 tool approval, gateway command approval, cron delivery, MCP mutation opt-in 같은 넓은 운영 gate를 갖는다. LazyCodex/OmO는 Codex hook approval과 plugin capability approval에 묶인다.
 
-## 이 장의 결론
+## 분석 축 5 — worker/process orchestration
 
-분류의 목적은 이름표 붙이기가 아니라 검증 질문을 고르는 것입니다. IDE 계열에는 index와 editor-state evidence를 요구하고, CLI 계열에는 shell/sandbox/edit evidence를 요구하고, runner 계열에는 trajectory를 요구하고, orchestrator 계열에는 durable state와 recovery proof를 요구해야 합니다.
+Orchestrator라는 말은 worker coordination을 요구한다. role prompt를 여러 개 만든다고 충분하지 않다. 실제로는 worker identity, worktree/tmux/session, mailbox, task queue, heartbeat, cleanup, conflict policy가 필요하다. Gajae-Code의 `team --dry-run`은 state layout을 보여주지만 live tmux worker orchestration은 아직 다음 검증이다. Hermes의 `delegate_task`, background process, cron job, MCP/ACP bridge는 multi-worker control plane으로 볼 수 있다. LazyCodex/OmO는 Codex subagent/hook lifecycle과 연결되지만 실제 worker parity는 더 확인해야 한다.
 
-## 더 읽기
+## 분석 축 6 — recovery/resume
 
-- [Source-level architecture atlas](../assets/evidence/source-level-architecture-atlas.md)
-- [Agent orchestration comparison](../assets/evidence/agent-orchestration-comparison.md)
-- [Coding agent taxonomy archive](../research/coding-agent-taxonomy.md)
+긴 coding workflow는 실패한다. 따라서 복구 지점이 없으면 demo는 가능해도 운영은 어렵다. recovery는 단순히 이전 transcript를 불러오는 것이 아니라, 현재 phase, pending artifact, blocked goal, worker state, approval state를 재구성하는 능력이다. Gajae-Code는 `.gjc` state가 이 가능성을 열어 주지만 corruption/recovery replay가 아직 필요하다. Hermes는 session resume, memory, background process, cron output, skill persistence를 통해 session 밖 runtime을 유지한다. LazyCodex/OmO는 `.omo` ledger가 근거가 되지만 stale state와 hook non-fire를 검증해야 한다.
+
+## 분석 축 7 — evidence/replay boundary
+
+마지막 축은 claim의 증거 경계다. source-confirmed claim은 “코드에 있다”는 뜻이고, runtime-confirmed claim은 “명령이 지금 성공했다”는 뜻이며, artifact-backed claim은 “실행 후 확인 가능한 durable artifact가 남았다”는 뜻이다. manifest-confirmed claim은 “선언되어 있다”는 뜻이지만 runtime callability를 보장하지 않는다. 이 구분이 없으면 LazyCodex/OmO의 plugin manifest와 실제 `$...` workflow 실행을 혼동하거나, Gajae-Code의 team dry-run과 live team을 혼동하거나, Hermes docs 최신 기능과 local installed runtime을 혼동하게 된다.
+
+## 이 프레임의 결론
+
+이 프레임을 적용하면 이 책의 구조가 자연스럽게 정리된다. Chapter 03은 phase/state/artifact가 가장 명확한 Gajae-Code를 본다. Chapter 04는 repo-local workflow를 넘어 persistent runtime으로 확장된 Hermes를 본다. Chapter 05는 Codex라는 강한 substrate 위에 workflow overlay를 얹는 LazyCodex/OmO를 본다. Chapter 06은 이 셋을 같은 축으로 비교해 coding agent가 어느 방향으로 발전하는지 정리한다.

@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-labelledby="title desc">
-  <title id="title">AI Coding Agent 구조 해부</title>
-  <desc id="desc">한국어 리서치 북 공유 이미지</desc>
+  <title id="title">Workflow Control Plane 분석</title>
+  <desc id="desc">Gajae-Code, Hermes Agent, LazyCodex/OmO 중심 한국어 리서치 북 공유 이미지</desc>
   <defs>
     <radialGradient id="glow" cx="50%" cy="0%" r="75%">
       <stop offset="0%" stop-color="#18e299" stop-opacity="0.45"/>
@@ -16,22 +16,11 @@
   <rect width="1200" height="630" fill="url(#glow)"/>
   <rect x="88" y="78" width="1024" height="474" rx="42" fill="url(#card)" stroke="#dbeee5" stroke-width="2"/>
   <g transform="translate(132 120)">
-    <rect x="0" y="0" width="106" height="38" rx="19" fill="#0d0d0d"/>
-    <text x="53" y="25" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="15" font-weight="700" letter-spacing="2" fill="#ffffff">AGENT</text>
-    <text x="0" y="92" font-family="Inter, Apple SD Gothic Neo, Segoe UI, sans-serif" font-size="68" font-weight="800" letter-spacing="-3" fill="#0d0d0d">AI Coding Agent</text>
-    <text x="0" y="168" font-family="Inter, Apple SD Gothic Neo, Segoe UI, sans-serif" font-size="68" font-weight="800" letter-spacing="-3" fill="#0d0d0d">구조 해부</text>
-    <text x="0" y="226" font-family="Inter, Apple SD Gothic Neo, Segoe UI, sans-serif" font-size="28" font-weight="600" fill="#2f3337">source path → runtime proof → artifact/state → failure mode</text>
-    <g transform="translate(0 286)" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="18" font-weight="700" fill="#0f8f62">
-      <rect x="0" y="0" width="148" height="42" rx="21" fill="#e9fff5" stroke="#9be8c6"/>
-      <text x="74" y="27" text-anchor="middle">Codex</text>
-      <rect x="164" y="0" width="132" height="42" rx="21" fill="#e9fff5" stroke="#9be8c6"/>
-      <text x="230" y="27" text-anchor="middle">Aider</text>
-      <rect x="312" y="0" width="178" height="42" rx="21" fill="#e9fff5" stroke="#9be8c6"/>
-      <text x="401" y="27" text-anchor="middle">OpenHands</text>
-      <rect x="506" y="0" width="128" height="42" rx="21" fill="#e9fff5" stroke="#9be8c6"/>
-      <text x="570" y="27" text-anchor="middle">Gajae</text>
-      <rect x="650" y="0" width="144" height="42" rx="21" fill="#e9fff5" stroke="#9be8c6"/>
-      <text x="722" y="27" text-anchor="middle">Hermes</text>
-    </g>
+    <rect x="0" y="0" width="132" height="38" rx="19" fill="#0d0d0d"/>
+    <text x="66" y="25" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="15" font-weight="700" letter-spacing="2" fill="#ffffff">CONTROL</text>
+    <text x="0" y="92" font-family="Inter, Apple SD Gothic Neo, Segoe UI, sans-serif" font-size="62" font-weight="800" letter-spacing="-3" fill="#0d0d0d">Workflow Control</text>
+    <text x="0" y="164" font-family="Inter, Apple SD Gothic Neo, Segoe UI, sans-serif" font-size="62" font-weight="800" letter-spacing="-3" fill="#0d0d0d">Plane 분석</text>
+    <text x="0" y="224" font-family="Inter, Apple SD Gothic Neo, Segoe UI, sans-serif" font-size="27" font-weight="600" fill="#2f3337">Gajae-Code · Hermes Agent · LazyCodex/OmO</text>
+    <text x="0" y="270" font-family="Inter, Apple SD Gothic Neo, Segoe UI, sans-serif" font-size="24" font-weight="500" fill="#596068">single agent loop → workflow/state/evidence/recovery orchestration</text>
   </g>
 </svg>

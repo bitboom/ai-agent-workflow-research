@@ -1,54 +1,63 @@
-# Chapter 03 — 공통 아키텍처
+# Gajae-Code Deep Dive — Repo-local Workflow Orchestrator
 
-[← Agent 분류](02-agent-taxonomy.md) · [다음: 구현체별 읽기 지도 →](04-implementation-atlas.md)
+[← 목차](README.md)
 
-## 여덟 개 층
+Gajae-Code는 이 책에서 **Repo-local Workflow Orchestrator / standalone coding-agent control plane**으로 분류한다. 핵심은 단일 agent loop가 아니라 repo 안에서 workflow phase를 만들고, 그 phase의 상태와 산출물을 `.gjc/_session-*` 아래에 남기는 점이다. Gajae-Code를 “또 하나의 coding agent CLI”로만 읽으면 중요한 부분을 놓친다. 이 시스템은 interview, plan, goal execution, team coordination을 각각의 phase로 나누고, phase 사이 handoff와 gate를 durable state로 표현하려 한다.
 
-제품 UI는 다르지만 source-level로 내려가면 반복되는 축이 있습니다. 이 책은 coding agent를 다음 여덟 층으로 읽습니다.
+## Working definition
 
-| 층 | 책임 | 실패하면 생기는 일 |
-| --- | --- | --- |
-| Model client / router | provider, streaming, retry, token budget, model selection | routing drift, latency/cost 폭증, 잘못된 capability 선택 |
-| Prompt / context assembly | system rule, repo files, memory, tool output, failing test log 선택 | 핵심 파일 누락, stale instruction, context stuffing |
-| Repo index / code graph | lexical search, AST/LSP, vector index, repo map | 관련 symbol 미발견, 오래된 index, remote workspace mismatch |
-| Planning / tool loop | plan 생성, action 선택, observation 반영, stop condition | 반복 loop, premature final, task decomposition 실패 |
-| Edit / execution | patch, search/replace, whole-file rewrite, shell/browser/MCP tool 실행 | malformed diff, broad rewrite, unsafe command |
-| Sandbox / approval | filesystem/network/shell 권한, human approval, enterprise policy | approval bypass, denied action recovery 실패, cleanup 누락 |
-| Verification / evidence | test/lint/build/benchmark/reviewer/evidence ledger | unrun test를 pass로 주장, flaky/partial 결과 은폐 |
-| Memory / durable state | session, checkpoint, skill, long-term memory, workflow artifact | compaction 후 맥락 상실, resume/recovery 실패 |
-
-## 읽는 요령
-
-한 agent가 실패했을 때 바로 모델 탓으로 돌리지 않습니다. 먼저 어느 층에서 실패했는지 분리합니다. 예를 들어 patch가 적용되지 않았다면 model reasoning 문제일 수도 있지만, edit format, anchor selection, handler routing, file protection, approval policy 문제일 수도 있습니다.
-
-Source atlas는 이 분리를 실제 파일 경로로 연결합니다. Codex는 `codex-rs/core/src/tools/router.rs`, `handlers/apply_patch.rs`, `sandboxing` 계열을 분리해서 볼 수 있고, Aider는 `base_coder.py`, `repomap.py`, edit-format coder들이 핵심입니다. SWE-agent는 `agents.py`, `swe_env.py`, `ToolHandler`, trajectory가 evaluation-friendly 구조를 만듭니다. Roo와 Continue는 IDE extension state, context management, tool policy, remote terminal routing을 봐야 합니다.
-
-## UI보다 내부 경로를 먼저 본다
-
-겉으로 같은 “파일 수정”이라도 내부 경로는 다릅니다.
-
-| 사용자 행동 | 내부적으로 확인할 질문 |
+| 항목 | 판정 |
 | --- | --- |
-| “이 버그 고쳐줘” | issue text가 어떤 prompt/context로 변환됐는가 |
-| “파일을 수정했다” | patch handler인가, whole-file rewrite인가, editor diff provider인가 |
-| “테스트했다” | 정확히 어떤 command, exit code, environment였는가 |
-| “팀이 작업했다” | 실제 worker process, worktree, mailbox, ledger가 있는가 |
-| “MCP를 지원한다” | manifest 선언인가, 실제 runtime-callable tool인가 |
+| 1차 분류 | Repo-local Workflow Orchestrator |
+| 2차 분류 | Standalone coding-agent control plane |
+| 핵심 workflow | `deep-interview → ralplan → ultragoal → team` |
+| 핵심 state root | `.gjc/_session-*` |
+| 현재 강한 근거 | source-confirmed docs/source anchors, runtime-confirmed basic smoke, artifact-backed controlled workflow replay |
+| 아직 미검증 | live non-dry-run team, recovery/resume, Hermes bridge runtime, owner/package drift |
 
-이 차이를 기록해야 architecture atlas가 됩니다. 단순 기능표는 “테스트 지원 O”라고 적지만, source-level atlas는 test command가 어디서 실행되고, 실패 결과가 다음 turn context에 어떻게 들어가는지 묻습니다.
+이 정의에서 “repo-local”이라는 말이 중요하다. Gajae-Code는 Hermes처럼 여러 플랫폼과 장기 memory를 포괄하는 persistent runtime이라기보다, 특정 repository 안의 coding workflow를 phase와 state로 묶는 쪽에 가깝다. 그러나 단순 harness와도 다르다. benchmark task를 실행하고 점수를 매기는 데 그치지 않고, 작업 자체를 interview, plan, goal, team이라는 운영 절차로 구조화한다.
 
-## Evidence layer와 architecture layer를 섞지 않는다
+## Phase model — deep-interview에서 team까지
 
-공통 아키텍처의 각 층은 서로 다른 evidence를 요구합니다. Source path는 구현 존재를 말하고, runtime smoke는 command 실행을 말하고, artifact replay는 state layout과 durable behavior를 말합니다. 세 가지는 모두 중요하지만 서로 대체할 수 없습니다.
+`deep-interview`는 요구사항을 바로 patch로 바꾸지 않고 spec로 수렴시키는 phase다. 이 phase의 의미는 “agent에게 바로 구현하라고 시키지 않는다”에 있다. 요구사항을 질문과 답변, final spec, handoff 형태로 고정한 다음 planning phase로 넘긴다. 단일 agent loop에서는 이 내용이 transcript 안에만 남을 수 있지만, Gajae-Code는 `.gjc` 아래 spec artifact를 남기는 방향을 택한다.
 
-Gajae-Code 예시가 이를 잘 보여줍니다. source에는 `ultragoal-runtime.ts`, `ralplan-runtime.ts`, `team-runtime.ts`가 있습니다. runtime smoke는 `gjc/0.7.3` command가 실행됨을 보여줍니다. workflow replay는 `.gjc/_session-*` 아래 specs, plans, ultragoal ledger, team dry-run state가 생성됨을 보여줍니다. 그러나 이 셋을 모두 합쳐도 live team recovery나 Hermes bridge behavior를 자동으로 증명하지는 않습니다.
+`ralplan`은 consensus/reviewed planning layer로 읽을 수 있다. plan이 단순 bullet list가 아니라 stage artifact, index, pending approval과 연결된다면 그것은 workflow gate다. plan이 승인되기 전에 execution으로 넘어가지 않게 만들고, 나중에 controller가 어떤 계획을 기준으로 실행했는지 확인할 수 있게 한다.
+
+`ultragoal`은 큰 작업을 goal ledger로 쪼개고 상태를 업데이트하는 phase다. replay evidence에서는 goals, ledger, checkpoint, review blocker가 확인됐다. 이것은 “작업이 어디까지 진행됐는가”를 transcript가 아니라 durable artifact로 보게 만든다. `team`은 worker/process coordination을 지향한다. 현재 evidence는 `team --dry-run` state layout까지이므로 live worker orchestration claim은 아직 보류해야 한다.
+
+## State root와 artifact map
+
+Gajae-Code 분석의 핵심 evidence는 `.gjc/_session-*`다. controlled replay summary는 다음 계열의 artifact를 확인한다.
+
+| 영역 | 대표 artifact | 의미 |
+| --- | --- | --- |
+| interview | `state/deep-interview-state.json`, `specs/deep-interview-*.md` | 요구사항 수렴과 handoff state |
+| planning | `state/ralplan-state.json`, `plans/ralplan/.../stage-*.md`, `pending-approval.md` | staged plan, approval gate, plan index |
+| goals | `ultragoal/goals.json`, `ultragoal/ledger.jsonl`, `state/ultragoal-state.json` | goal lifecycle, checkpoint, blocker 기록 |
+| team | `state/team/.../config.json`, `manifest.v2.json`, `tasks/*.json`, `events.jsonl` | worker/task/event layout, dry-run team structure |
+
+이 artifact map은 Gajae-Code를 단순 agent가 아니라 workflow orchestrator로 읽게 하는 가장 강한 이유다. agent가 어떤 말을 했는가보다 workflow가 어떤 state를 남겼는가가 중요하다. 또한 이 구조는 replay와 recovery의 전제다. state root가 있어야 다음 실행이 어디서 이어질지, 어떤 artifact가 canonical인지, 어떤 goal이 blocked인지 판단할 수 있다.
+
+## Evidence label별 현재 판정
+
+`source-confirmed`: README/docs와 package source에서 Gajae-Code가 focused coding-agent runner, interviews, reviewed plans, tmux-native execution, durable verification을 지향한다는 근거가 있다. source anchors는 `deep-interview`, `ralplan`, `ultragoal`, `team` command/runtime 파일로 연결된다.
+
+`runtime-confirmed`: `gjc/0.7.3` version/help/smoke/print smoke와 controlled temp repo replay에서 각 workflow command surface가 호출 가능한 것으로 정리됐다. 단, local environment observation은 설치 상태와 해당 replay 조건을 말할 뿐 모든 운영 상황을 보장하지 않는다.
+
+`artifact-backed`: isolated fixture repo에서 `deep-interview`, `ralplan`, `ultragoal`, `team --dry-run`이 `.gjc/_session-*` 아래 expected artifact layout을 쓴 것이 확인됐다. 이 라벨이 Gajae-Code deep dive의 핵심이다.
+
+`unverified`: live non-dry-run `team`, tmux worker heartbeat, worktree cleanup, orphan recovery, `.gjc` corruption recovery, long-running resume, Hermes coordinator bridge runtime은 아직 본문에서 강하게 단정하지 않는다.
+
+## Orchestrator로서의 강점
+
+Gajae-Code의 강점은 workflow를 repo 가까이에 둔다는 점이다. state root가 repo 안에 있고, 계획과 goal과 team state가 같은 session root 아래 놓인다. 이는 controller가 산출물을 확인하기 쉽고, public report에서 sanitized summary를 만들기 쉽다. 또한 `deep-interview → ralplan` handoff처럼 phase 간 연결이 명시되면, agent가 중간 결정을 잊거나 계획 없이 실행하는 문제를 줄일 수 있다.
+
+또 다른 강점은 approval과 blocker를 artifact로 표현하려는 방향이다. replay에서 `ultragoal review-start`가 executor QA artifact absence를 blocker로 취급한 것은 “review gate가 단순 문구가 아니라 상태 전이에 영향을 준다”는 신호다. 이런 gate는 coding agent를 SDLC component로 쓰려면 중요하다.
+
+## Caveat와 다음 검증
+
+Gajae-Code를 이미 완성된 enterprise orchestrator라고 말하면 과장이다. 현재 가장 강한 evidence는 controlled artifact replay다. live team execution, recovery/resume, Hermes bridge, package/repo canonical owner drift는 남아 있다. 특히 team dry-run은 state layout과 command callability를 증명하지만 실제 tmux pane startup, worker coordination, heartbeat recovery를 증명하지 않는다. 따라서 다음 검증은 live team을 작은 repo에서 실행하고, 중단/재시작/충돌/cleanup을 관찰한 뒤 artifact ledger와 결과물을 함께 확인하는 방식이어야 한다.
 
 ## 이 장의 결론
 
-좋은 agent 분석은 하나의 box diagram으로 끝나지 않습니다. 각 layer가 어떤 source path에 있고, 어떤 runtime proof가 있으며, 어떤 artifact가 남고, 어떤 failure mode를 갖는지 이어서 읽어야 합니다. 다음 장에서는 이 여덟 층을 각 구현체에 적용하는 읽기 지도를 만듭니다.
-
-## 더 읽기
-
-- [Source-level architecture atlas](../assets/evidence/source-level-architecture-atlas.md)
-- [Public failure-pattern corpus draft](../assets/evidence/source-level-architecture-atlas.md#public-failure-pattern-corpus-draft)
-- [Evaluation framework](../research/coding-agent-evaluation-framework.md)
+Gajae-Code는 이 책의 세 대상 중 “Workflow Orchestrator”라는 이름에 가장 직접적으로 맞는다. 이유는 명확하다. workflow phase가 있고, `.gjc/_session-*` state root가 있고, artifact ledger가 있으며, approval/blocker/team state를 표현하려 한다. 아직 live orchestration proof가 남아 있지만, 현재 evidence만으로도 Gajae-Code를 단순 AI Agent나 단순 Harness가 아니라 repo-local workflow control plane으로 분석하는 것이 타당하다.
